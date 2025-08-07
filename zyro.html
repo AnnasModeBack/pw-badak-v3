@@ -91,6 +91,13 @@
       transition: transform 0.3s ease;
     }
 
+    /* Efek tombol saat ditekan */
+    .button:active, .back-btn:active, .qr-download-btn:active, .copy-button:active, .confirm-button:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 5px #ff3c00;
+      filter: brightness(1.2);
+    }
+    
     .button:hover, .back-btn:hover, .qr-download-btn:hover {
       transform: scale(1.05);
     }
@@ -137,17 +144,18 @@
       font-weight: bold;
       box-shadow: 0 0 10px #ff3c00;
       cursor: pointer;
+      transition: transform 0.3s ease; /* Tambahkan transition */
     }
 
     .copied-msg {
-      background-color: #000; /* Warna latar hitam */
+      background-color: #000;
       padding: 10px 15px;
       border-radius: 8px;
       color: white;
       font-weight: bold;
       animation: popin 0.3s ease forwards;
       text-align: center;
-      border-left: 6px solid #ff3c00; /* Garis kiri merah menyala */
+      border-left: 6px solid #ff3c00;
     }
 
     @keyframes popin {
@@ -210,14 +218,12 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- HALAMAN UTAMA -->
     <div id="homePage">
       <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
       <h1>WELCOME TO ZYRO</h1>
       <button class="button" onclick="goToPayment()">PAYMENT</button>
     </div>
 
-    <!-- HALAMAN PAYMENT -->
     <div id="paymentPage" class="hidden">
       <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
       <h1>PAYMENT ZYRO</h1>
