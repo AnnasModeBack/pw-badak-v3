@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PAYMENT ZYRO</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #2a0000, #000);
+      font-family: 'Share Tech Mono', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      text-align: center;
+      color: #ff3c00;
+    }
+
+    .hidden { display: none; }
+    .fade-in { animation: fadeIn 0.4s forwards; }
+    .fade-out { animation: fadeOut 0.4s forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(-20px); }
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin: 15px 0;
+      animation: typing 2s steps(25, end), blink-caret 0.75s step-end 3, hide-caret 0.3s ease 2s forwards;
+      border-right: 2px solid rgba(255,255,255,0.75);
+      white-space: nowrap;
+      overflow: hidden;
+      width: fit-content;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50% { border-color: rgba(255,255,255,0.75); }
+    }
+
+    @keyframes hide-caret {
+      to { border-right: 0px solid transparent; }
+    }
+
+    .thumbnail {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      box-shadow: 0 0 25px #ff3c00;
+      margin: 0 auto 20px auto;
+      display: block;
+    }
+
+    .button, .back-btn, .qr-download-btn {
+      background-color: #ff3c00;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #ff3c00;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .button:hover, .back-btn:hover, .qr-download-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .back-btn { margin-top: 30px; }
+
+    .payment-info {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+    }
+
+    .payment-info.show {
+      max-height: 1000px;
+    }
+
+    .copy-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      gap: 20px;
+    }
+
+    .dana-box {
+      background: rgba(42, 0, 0, 0.8);
+      color: #ff3c00;
+      padding: 10px 20px;
+      border: 2px solid #ff3c00;
+      border-radius: 20px;
+      font-size: 1.1em;
+      font-weight: bold;
+      box-shadow: 0 0 20px #ff3c00;
+      text-align: center;
+      width: 100%;
+    }
+
+    .copy-button, .confirm-button {
+      background-color: #ff3c00;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #ff3c00;
+      cursor: pointer;
+    }
+
+    .copied-msg {
+      background-color: #000; /* Warna latar hitam */
+      padding: 10px 15px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      animation: popin 0.3s ease forwards;
+      text-align: center;
+      border-left: 6px solid #ff3c00; /* Garis kiri merah menyala */
+    }
+
+    @keyframes popin {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes popout {
+      from { transform: scale(1); opacity: 1; }
+      to { transform: scale(0); opacity: 0; }
+    }
+
+    .qris-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      gap: 20px;
+    }
+
+    .qris-container-wrapper {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .qris-container {
+      padding: 6px;
+      border: 2px solid #ff3c00;
+      border-radius: 12px;
+      box-shadow: 0 0 12px #ff3c00;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .qris-container.expanded {
+      transform: scale(1.5);
+    }
+
+    .qris-img {
+      display: block;
+      width: 160px;
+      height: 160px;
+      border-radius: 12px;
+    }
+
+    .qr-download-btn {
+      display: none;
+      margin-top: 40px;
+    }
+
+    .qr-hint {
+      margin-top: 10px;
+      color: #aaa;
+      font-size: 0.9em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- HALAMAN UTAMA -->
+    <div id="homePage">
+      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
+      <h1>WELCOME TO ZYRO</h1>
+      <button class="button" onclick="goToPayment()">PAYMENT</button>
+    </div>
+
+    <!-- HALAMAN PAYMENT -->
+    <div id="paymentPage" class="hidden">
+      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
+      <h1>PAYMENT ZYRO</h1>
+      <button class="button" onclick="togglePaymentInfo()">ALL PAYMENT</button>
+
+      <div class="payment-info" id="paymentInfo">
+        <div class="copy-section">
+          <div class="qris-box">
+            <div class="qris-container-wrapper">
+              <div class="qris-container" id="qrisContainer">
+                <img src="https://g.top4top.io/p_34926winh1.jpg" alt="QRIS" class="qris-img" id="qrisImage" />
+              </div>
+            </div>
+            <button class="qr-download-btn" id="qrDownloadBtn" onclick="downloadQR()">Download QR</button>
+            <small class="qr-hint">📌 Tekan lama gambar jika ingin simpan ke galeri</small>
+          </div>
+
+          <div class="dana-box">DANA: <span id="danaNumber">088290828027</span></div>
+          <button class="copy-button" onclick="copyDana()">Salin Nomor</button>
+
+          <div id="copiedMessage" style="display:none;" class="copied-msg">
+            ✅ Nomor DANA disalin
+            <button class="confirm-button" onclick="hideCopiedMessage()">OKE</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="back-btn" onclick="backToHome()">⬅ BACK</button>
+    </div>
+  </div>
+
+  <script>
+    const qris = document.getElementById('qrisContainer');
+    const qrBtn = document.getElementById('qrDownloadBtn');
+    const qrisImage = document.getElementById('qrisImage');
+
+    qris.addEventListener('click', () => {
+      qris.classList.toggle('expanded');
+      qrBtn.style.display = qris.classList.contains('expanded') ? 'inline-block' : 'none';
+    });
+
+    function downloadQR() {
+      const link = document.createElement('a');
+      link.href = qrisImage.src;
+      link.download = 'qris-dixey.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      alert("✅ QRIS berhasil diunduh.\nCek folder 'Download' HP kamu.");
+    }
+
+    function togglePaymentInfo() {
+      document.getElementById('paymentInfo').classList.toggle('show');
+    }
+
+    function copyDana() {
+      const danaText = document.getElementById('danaNumber').innerText;
+      const textarea = document.createElement('textarea');
+      textarea.value = danaText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        document.getElementById('copiedMessage').style.display = 'block';
+      } catch (err) {
+        alert('Gagal menyalin nomor');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function hideCopiedMessage() {
+      const msg = document.getElementById('copiedMessage');
+      msg.style.animation = 'popout 0.3s ease forwards';
+      setTimeout(() => {
+        msg.style.display = 'none';
+        msg.style.animation = '';
+      }, 300);
+    }
+
+    function goToPayment() {
+      const home = document.getElementById("homePage");
+      const payment = document.getElementById("paymentPage");
+      home.classList.add("fade-out");
+      setTimeout(() => {
+        home.classList.add("hidden");
+        home.classList.remove("fade-out");
+        payment.classList.remove("hidden");
+        payment.classList.add("fade-in");
+        setTimeout(() => payment.classList.remove("fade-in"), 500);
+      }, 400);
+    }
+
+    function backToHome() {
+      const home = document.getElementById("homePage");
+      const payment = document.getElementById("paymentPage");
+      payment.classList.add("fade-out");
+      setTimeout(() => {
+        payment.classList.add("hidden");
+        payment.classList.remove("fade-out");
+        home.classList.remove("hidden");
+        home.classList.add("fade-in");
+        setTimeout(() => home.classList.remove("fade-in"), 500);
+      }, 400);
+    }
+  </script>
+</body>
+</html>
