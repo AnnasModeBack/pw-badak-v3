@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAYMENT ZYRO</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrapper">
+    <div id="homePage">
+      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
+      <h1>WELCOME TO ZYRO</h1>
+      <button class="button" onclick="goToPayment()">PAYMENT</button>
+    </div>
+
+    <div id="paymentPage" class="hidden">
+      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
+      <h1>PAYMENT ZYRO</h1>
+      <button class="button" id="togglePaymentBtn">ALL PAYMENT</button>
+
+      <div class="payment-info" id="paymentInfo">
+        <div class="copy-section">
+          <div class="qris-box">
+            <div class="qris-container-wrapper">
+              <div class="qris-container" id="qrisContainer">
+                <img src="https://g.top4top.io/p_34926winh1.jpg" alt="QRIS" class="qris-img" id="qrisImage" />
+              </div>
+            </div>
+            <button class="qr-download-btn" id="qrDownloadBtn">Download QR</button>
+            <small class="qr-hint">📌 Tekan lama gambar jika ingin simpan ke galeri</small>
+          </div>
+
+          <div class="dana-box">DANA: <span id="danaNumber">088290828027</span></div>
+          <button class="copy-button" id="copyDanaBtn">Salin Nomor</button>
+
+          <div id="copiedMessage" class="copied-msg hidden">
+            ✅ Nomor DANA disalin
+            <button class="confirm-button" id="confirmCopyBtn">OKE</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="back-btn" onclick="backToHome()">⬅ BACK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
