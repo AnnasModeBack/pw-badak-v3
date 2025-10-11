@@ -20,8 +20,13 @@
         .card-bg { background-color: #374151; } /* Darker card background */
         .red-primary { background-color: #b91c1c; } /* Tailwind Red-700 */
         .red-hover:hover { background-color: #991b1b; } /* Tailwind Red-800 */
+        /* Animasi sinyal untuk status AKTIF */
         .shine-animation { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+        /* Style untuk scrollbar (untuk estetika gelap) */
+        .log-box::-webkit-scrollbar { width: 8px; }
+        .log-box::-webkit-scrollbar-track { background: #1f2937; }
+        .log-box::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 20px; border: 2px solid #1f2937; }
     </style>
 </head>
 <body class="p-4 sm:p-6 min-h-screen flex justify-center">
@@ -30,7 +35,8 @@
         
         <header class="text-center mb-8">
             <div class="flex justify-center items-center text-red-600 mb-2">
-                <img src="https://files.catbox.moe/tgaqqj.jpeG" alt="Profile" class="w-12 h-12 rounded-full mr-3 object-cover border-2 border-red-600">
+                <!-- Logo yang Sesuai -->
+                <img src="https://files.catbox.moe/tgaqqj.jpeG" alt="Profile" class="w-12 h-12 rounded-full mr-3 object-cover border-2 border-red-600 shadow-md">
                 <h1 class="text-4xl font-black text-white tracking-wider">ANNAS FIX MERAH</h1>
             </div>
             <p class="text-sm text-gray-400">Panel Kontrol Bot Appeal WhatsApp</p>
@@ -43,7 +49,7 @@
                     <i data-lucide="zap" class="w-5 h-5 mr-2 text-red-500"></i>
                     Status Server
                 </h2>
-                <div id="status-display" class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg shine-animation">Loading...</div>
+                <div id="status-display" class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg">Loading...</div>
             </div>
             
             <div class="grid grid-cols-2 gap-4 text-center">
@@ -130,8 +136,8 @@
     </div>
 
     <script>
-        // PENTING: GANTI DENGAN URL CLOUDFLARED ANDA SEBELUM DEPLOY!
-      const API_BASE_URL = 'https://argued-compliant-radiation-half.trycloudflare.com';
+const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
+
 
         // -----------------------------------------------------------------
         
@@ -176,15 +182,19 @@
                 isConnected = true;
 
                 statusDisplay.textContent = data.status;
-                statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg ${data.status === 'AKTIF' ? 'bg-green-500 shine-animation' : 'bg-red-500'}`;
+                // Mengatur status display dengan animasi bersinar (shine-animation)
+                statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg ${data.status === 'AKTIF' ? 'bg-green-500 shine-animation' : 'bg-red-700'}`;
                 accountsCount.textContent = data.accounts_count;
                 riwayatCount.textContent = data.riwayat_count;
-
-                // Tampilkan log terbaru
-                logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
-                if (data.logs.length === 0) {
-                    logDisplay.innerHTML = `<div class="text-gray-500">Log konsol akan muncul di sini setelah server Python berjalan.</div>`;
+                
+                // Tambahkan pesan interval IMAP ke log jika server aktif
+                if (data.status === 'AKTIF' && data.logs.length === 0) {
+                     logDisplay.innerHTML = `<div class="text-green-400 font-bold">✅ Server Terhubung. Bot aktif. Cek IMAP setiap ${data.imap_interval} detik.</div>`;
+                } else if (data.status === 'AKTIF') {
+                    // Tampilkan log terbaru
+                    logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
                 }
+
 
             } catch (error) {
                 statusDisplay.textContent = 'OFFLINE';
@@ -252,7 +262,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchStatus();
             setInterval(fetchStatus, 3000); 
-            lucide.createIcons(); // Ensure icons are created after DOM load
+            lucide.createIcons();
         });
     </script>
 </body>
