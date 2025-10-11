@@ -12,20 +12,21 @@ import threading
 import json 
 from collections import deque
 from datetime import datetime
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+import telebot # Library for Telegram Bot (PyTelegramBotAPI)
 
-# --- KONFIGURASI BOT (WAJIB GANTI) ---
-# Dapatkan dari BotFather dan Channel Anda
-TELEGRAM_BOT_TOKEN = "6589420280:AAEPgvt6DdvZdtZ0NM-olXz9XNySr6PDNYM"  # Ganti dengan Token Bot Anda
-TELEGRAM_CHAT_ID = "-1003102738220" # Ganti dengan ID Channel/Group Anda
-
+# --- KONFIGURASI UMUM & TOKEN API ---
+# PENTING: GANTI DENGAN TOKEN ASLI ANDA
+TELEGRAM_BOT_TOKEN = "6589420280:AAEPgvt6DdvZdtZ0NM-olXz9XNySr6PDNYM"
+TELEGRAM_CHAT_ID = "-1003102738220"
+RECEIVER_EMAIL = "support@support.whatsapp.com"
 ACCOUNTS_FILE = "accounts.txt"
 RIWAYAT_FILE = "riwayat_kirim.json"
-IMAP_CHECK_INTERVAL_SECONDS = 60 # Cek balasan IMAP setiap 60 detik
-RECEIVER_EMAIL = "support@support.whatsapp.com"
+IMAP_CHECK_INTERVAL_SECONDS = 60
+WEB_URL = "https://webfixmerahbyanas.netlify.app/" # URL web yang diminta untuk command /start
 
-# Akun default untuk pengujian/starter
+# Akun default (Wajib ada)
 DEFAULT_ACCOUNTS = [
     {'email': "annasrullah916@gmail.com", 'password': "vsgs ndxi tsev aqwv"},
     {'email': "sgjutaf@gmail.com", 'password': "ckgx tnga otiq ufer"},
@@ -36,71 +37,84 @@ SENDER_ACCOUNTS = []
 RIWAYAT_PENGIRIMAN_GLOBAL = deque()
 LOG_QUEUE = deque(maxlen=100)
 IS_BOT_RUNNING = False
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# --- UTILITY LOGGING & DATA ---
+# --- UTILITY LOGGING & DATA PERSISTENCE ---
 
-def add_log(level, message):
-    """Adds a log entry to the global queue and prints to console."""
+def add_log(level, message, console_only=False):
+    """Menambahkan entri log ke antrian global dan mencetak ke konsol."""
     timestamp = datetime.now().strftime("%H:%M:%S")
     log_entry = {'timestamp': timestamp, 'level': level, 'message': message}
     print(f"[{level}] {timestamp} - {message}")
-    LOG_QUEUE.appendleft(log_entry)
+    if not console_only:
+        LOG_QUEUE.appendleft(log_entry)
 
 def load_accounts():
-    """Loads default and additional accounts from file."""
+    """Memuat akun default dan tambahan dari file."""
     global SENDER_ACCOUNTS
     accounts = list(DEFAULT_ACCOUNTS)
     
     if os.path.exists(ACCOUNTS_FILE):
-        with open(ACCOUNTS_FILE, 'r') as f:
-            for line in f:
-                try:
-                    email, password = line.strip().split(':', 1)
-                    if email and password and '@' in email:
-                        accounts.append({'email': email.strip(), 'password': password.strip()})
-                except ValueError:
-                    continue
+        try:
+            with open(ACCOUNTS_FILE, 'r') as f:
+                for line in f:
+                    try:
+                        email, password = line.strip().split(':', 1)
+                        if email and password and '@' in email:
+                            # Hanya tambahkan jika belum ada di default
+                            if not any(acc['email'] == email for acc in DEFAULT_ACCOUNTS):
+                                accounts.append({'email': email.strip(), 'password': password.strip()})
+                    except ValueError:
+                        continue
+        except Exception as e:
+            add_log("ERROR", f"Gagal memuat {ACCOUNTS_FILE}: {e}", console_only=True)
+
     SENDER_ACCOUNTS = accounts
     add_log("INIT", f"Memuat {len(accounts)} akun pengirim.")
 
 def load_riwayat():
-    """Loads history from file."""
+    """Memuat riwayat dari file."""
     global RIWAYAT_PENGIRIMAN_GLOBAL
     if os.path.exists(RIWAYAT_FILE):
         try:
             with open(RIWAYAT_FILE, 'r') as f:
-                RIWAYAT_PENGIRIMAN_GLOBAL = deque(json.load(f))
+                RIWAYAT_PENGIRIMAN_GLOBAL = deque(json.load(f), maxlen=500) # Batasi riwayat
         except (IOError, json.JSONDecodeError):
-            RIWAYAT_PENGIRIMAN_GLOBAL = deque()
+            RIWAYAT_PENGIRIMAN_GLOBAL = deque(maxlen=500)
 
 def save_riwayat():
-    """Saves history to file."""
+    """Menyimpan riwayat ke file."""
     try:
         with open(RIWAYAT_FILE, 'w') as f:
-            json.dump(list(RIWAYAT_PENGIRIMAN_GLOBAL), f)
+            json.dump(list(RIWAYAT_PENGIRIMAN_GLOBAL), f, indent=4)
     except Exception as e:
         add_log("ERROR", f"Gagal menyimpan riwayat: {e}")
 
 def save_accounts():
-    """Saves additional accounts to accounts.txt (skipping default accounts)."""
+    """Menyimpan akun tambahan ke accounts.txt (melewati akun default)."""
     try:
         with open(ACCOUNTS_FILE, 'w') as f:
+            # Lewati akun default (yang tidak perlu disimpan ulang)
             start_index = len(DEFAULT_ACCOUNTS)
             for account in SENDER_ACCOUNTS[start_index:]:
-                f.write(f"{account['email']}:{account['password']}\n")
+                # Pastikan akun yang disimpan adalah yang ditambahkan oleh user, bukan default
+                if account not in DEFAULT_ACCOUNTS:
+                    f.write(f"{account['email']}:{account['password']}\n")
     except Exception as e:
         add_log("ERROR", f"Gagal menyimpan akun: {e}")
 
 def sensor_email(email):
-    """Censors email for privacy in logs."""
+    """Menyensor email untuk privasi di log."""
     if not email or '@' not in email: return "[Tidak Valid]"
     try:
         parts = email.split('@')
         username = parts[0]
         domain = parts[1]
         
-        if len(username) > 2:
-            username_censored = username[0] + '***' + username[-1]
+        if len(username) > 4:
+            username_censored = username[0:2] + '***' + username[-2:]
+        elif len(username) > 2:
+            username_censored = username[0] + '***'
         else:
             username_censored = '****'
             
@@ -109,41 +123,33 @@ def sensor_email(email):
         return "[Format Salah]"
 
 def normalize_phone_number(nomor):
-    """Normalizes phone number to international format (+XX...)."""
+    """Menormalkan nomor telepon ke format internasional (+XX...)."""
+    # Menghapus semua karakter selain angka dan '+'
     nomor_bersih = re.sub(r'[^\d+]', '', nomor)
-    nomor_bersih = nomor_bersih.lstrip('0')
-    if nomor_bersih.startswith('+'):
-        nomor_bersih = '+' + nomor_bersih.lstrip('+')
+    
+    # Jika diawali '0', hapus dan coba tambahkan kode negara default jika perlu (misal Indonesia +62)
+    if nomor_bersih.startswith('0'):
+        nomor_bersih = nomor_bersih.lstrip('0')
+        # Jika panjang setelah '0' cukup dan tidak ada '+' (asumsi nomor lokal)
+        if len(nomor_bersih) >= 8 and not nomor_bersih.startswith('+'):
+            # Ini hanya contoh untuk nomor Indonesia, ganti jika perlu
+            return '+62' + nomor_bersih
 
-    if not nomor_bersih.startswith('+') and len(nomor_bersih) >= 5:
+    # Jika sudah memiliki '+' di awal
+    if nomor_bersih.startswith('+'):
+        return '+' + nomor_bersih.lstrip('+')
+
+    # Jika belum ada '+' dan panjangnya seperti nomor internasional
+    if len(nomor_bersih) >= 8: # Minimal panjang nomor internasional (contoh +12345678)
+        # Tambahkan '+' secara default jika tidak ada. Asumsi user memasukkan kode negara.
         return '+' + nomor_bersih
         
     return nomor_bersih
 
-def kirim_notifikasi_telegram(pesan):
-    """Sends notification message to Telegram."""
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        add_log("WARN", "Token/ID Telegram kosong. Notifikasi dilewati.")
-        return False
-        
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        'chat_id': TELEGRAM_CHAT_ID,
-        'text': pesan,
-        'parse_mode': 'HTML'
-    }
-    
-    try:
-        requests.post(url, json=payload, timeout=5)
-        return True
-    except requests.exceptions.RequestException:
-        add_log("WARN", "Gagal koneksi Telegram.")
-        return False
-
 # --- LOGIKA INTI BOT (SMTP/IMAP) ---
 
 def kirim_email_banding(nomor_telepon):
-    """Core logic to send appeal email."""
+    """Logika inti untuk mengirim email banding."""
     if not SENDER_ACCOUNTS:
         add_log("FATAL", "Tidak ada akun pengirim yang ditemukan.")
         return False, "Tidak ada akun pengirim yang tersedia."
@@ -154,21 +160,31 @@ def kirim_email_banding(nomor_telepon):
     
     nomor_normalized = normalize_phone_number(nomor_telepon)
 
+    # Validasi minimal 5 digit setelah '+'
     if not re.match(r'^\+\d{5,}$', nomor_normalized):
-        return False, f"Nomor {nomor_telepon} tidak valid."
+        return False, f"Nomor {nomor_telepon} setelah normalisasi ({nomor_normalized}) tidak valid."
 
+    # Pembuatan Subjek dan Isi Email
     subjek = f"Permintaan Peninjauan Akun Ditangguhkan: {nomor_normalized}"
     isi_email = f"""
-Halo Tim Dukungan WhatsApp,
+Kepada Tim Dukungan WhatsApp,
 
-Saya ingin melaporkan masalah terkait nomor WhatsApp saya. Saat mencoba melakukan pendaftaran, selalu muncul pesan "Login Tidak Tersedia Untuk Saat Ini".
+Saya menulis surat ini untuk meminta peninjauan ulang segera atas akun WhatsApp saya yang ditangguhkan.
 
-Nomor WhatsApp saya adalah: {nomor_normalized}.
+Saya telah menerima pemberitahuan bahwa akun saya diblokir/ditangguhkan, atau saya mengalami masalah saat mendaftar dengan pesan "Login Tidak Tersedia Untuk Saat Ini".
 
-Saya mohon agar pihak WhatsApp dapat membantu agar saya bisa menggunakan kembali nomor saya tanpa muncul kendala tersebut. Terima kasih.
+Nomor WhatsApp saya yang terkena dampak adalah: {nomor_normalized}.
+
+Saya yakin penangguhan ini adalah sebuah kekeliruan, dan saya memohon agar akun saya segera diaktifkan kembali.
+
+Saya telah membaca dan akan mematuhi semua Ketentuan Layanan WhatsApp. Saya mohon perhatian dan tindakan cepat Anda.
+
+Hormat saya,
+Pengguna Setia WhatsApp ({sender_email})
     """
 
     try:
+        # Kirim Email via SMTP
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = RECEIVER_EMAIL
@@ -186,13 +202,14 @@ Saya mohon agar pihak WhatsApp dapat membantu agar saya bisa menggunakan kembali
         add_log("SUCCESS", f"Banding {nomor_normalized} terkirim dari {email_censored}.")
         
         telegram_kirim_msg = f"""
-➡️ BANDING TERKIRIM
-Nomor: <code>{nomor_normalized}</code>
-Dikirim Dari: <code>{email_censored}</code>
+➡️ *BANDING TERKIRIM (Web/Bot)*
+Nomor: `{nomor_normalized}`
+Pengirim: `{email_censored}`
+Status: ✅ Berhasil terkirim ke WhatsApp Support.
 """
-        kirim_notifikasi_telegram(telegram_kirim_msg)
+        kirim_notifikasi_telegram(telegram_kirim_msg, parse_mode='Markdown')
         
-        # Add to history
+        # Tambahkan ke riwayat
         RIWAYAT_PENGIRIMAN_GLOBAL.appendleft({'nomor': nomor_normalized, 'pengirim': sender_email, 'timestamp': datetime.now().isoformat()})
         save_riwayat()
         
@@ -207,7 +224,7 @@ Dikirim Dari: <code>{email_censored}</code>
 
 
 def check_and_notify_replies(item, account_data):
-    """Checks for WhatsApp replies via IMAP."""
+    """Memeriksa balasan WhatsApp via IMAP dan mengirim notifikasi Telegram."""
     nomor_banding = item['nomor']
     imap_user = account_data['email']
     imap_pass = account_data['password']
@@ -217,7 +234,7 @@ def check_and_notify_replies(item, account_data):
         mail.login(imap_user, imap_pass) 
         mail.select('inbox')
 
-        # Search for unseen emails from WhatsApp containing the appeal number
+        # Mencari email yang belum dibaca dari WhatsApp support dan mengandung nomor banding
         search_criteria = f'(UNSEEN FROM "support@support.whatsapp.com" TEXT "{nomor_banding}")'
         status, email_ids = mail.search(None, search_criteria)
         
@@ -230,7 +247,6 @@ def check_and_notify_replies(item, account_data):
         latest_email_id = email_id_list[-1]
         status, msg_data = mail.fetch(latest_email_id, '(RFC822)')
         
-        # Parse email
         raw_email = msg_data[0][1]
         msg = email_parser.message_from_bytes(raw_email)
         subject = msg['subject']
@@ -252,25 +268,47 @@ def check_and_notify_replies(item, account_data):
                 
         telegram_message = f"""
 🚨 BALASAN WHATSAPP MASUK! 🚨
-Nomor Banding: <code>{nomor_banding}</code>
-Pengirim Banding (Akun Anda): <code>{email_pengirim_sensor}</code>
+Nomor Banding: `{nomor_banding}`
+Pengirim Banding (Akun Anda): `{email_pengirim_sensor}`
 Subjek: {subject}
 
---- ISI BALASAN ---
-<code>{body[:350].strip()}...</code>
+--- ISI BALASAN (Ringkasan) ---
+`{body[:400].strip()}...`
+
+[Klik untuk membuka web dashboard]({WEB_URL})
 """
-        kirim_notifikasi_telegram(telegram_message)
+        kirim_notifikasi_telegram(telegram_message, parse_mode='Markdown')
         
-        # Mark email as read
+        # Tandai email sebagai sudah dibaca
         mail.store(latest_email_id, '+FLAGS', '\\Seen')
         mail.logout()
         
     except imaplib.IMAP4.error as e:
-        add_log("ERROR", f"IMAP GAGAL koneksi/login untuk {sensor_email(imap_user)}. Cek App Password/IMAP ON.")
+        add_log("ERROR", f"IMAP GAGAL koneksi/login untuk {sensor_email(imap_user)}. Cek App Password/IMAP ON. Error: {e}", console_only=True)
     except Exception as e:
         add_log("ERROR", f"Kesalahan saat cek IMAP: {e}")
 
-# --- THREAD LATAR BELAKANG ---
+def kirim_notifikasi_telegram(pesan, parse_mode='HTML'):
+    """Mengirim pesan notifikasi ke Telegram."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        add_log("WARN", "Token/ID Telegram kosong. Notifikasi dilewati.", console_only=True)
+        return False
+        
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': pesan,
+        'parse_mode': parse_mode
+    }
+    
+    try:
+        requests.post(url, json=payload, timeout=5)
+        return True
+    except requests.exceptions.RequestException as e:
+        add_log("WARN", f"Gagal koneksi Telegram: {e}", console_only=True)
+        return False
+
+# --- THREAD LATAR BELAKANG UNTUK IMAP CHECK ---
 
 class BackgroundWorker(threading.Thread):
     def __init__(self):
@@ -280,32 +318,35 @@ class BackgroundWorker(threading.Thread):
         self.name = "Background-Worker"
 
     def run(self):
-        """Main loop for IMAP check."""
-        global IS_BOT_RUNNING, SENDER_ACCOUNTS
+        """Loop utama untuk cek IMAP otomatis."""
+        global IS_BOT_RUNNING
         IS_BOT_RUNNING = True
         
         load_accounts()
         load_riwayat()
         
-        add_log("INIT", "Bot Telegram & Cek IMAP dimulai di latar belakang...")
+        add_log("INIT", "Cek IMAP & server API dimulai di latar belakang...")
         self.last_imap_check_time = int(time.time())
 
         while not self._stop_event.is_set():
             time.sleep(1)
             current_time = int(time.time())
             
-            # --- Automatic IMAP Check for Replies ---
+            # --- Cek IMAP Otomatis untuk Balasan ---
             if SENDER_ACCOUNTS and len(RIWAYAT_PENGIRIMAN_GLOBAL) > 0 and (current_time - self.last_imap_check_time) >= IMAP_CHECK_INTERVAL_SECONDS:
                 add_log("INFO", f"Memeriksa {len(RIWAYAT_PENGIRIMAN_GLOBAL)} riwayat pengiriman...")
                 
-                for item in list(RIWAYAT_PENGIRIMAN_GLOBAL): 
+                # Cek balasan hanya untuk 50 riwayat terbaru untuk efisiensi
+                for item in list(RIWAYAT_PENGIRIMAN_GLOBAL)[:50]: 
                     try:
+                        # Cari data akun yang digunakan untuk mengirim riwayat ini
                         account_data = next(acc for acc in SENDER_ACCOUNTS if acc['email'] == item['pengirim'])
                         check_and_notify_replies(item, account_data)
                     except StopIteration:
-                        continue # Skip if credential is removed
+                        # Akun pengirim sudah dihapus, lewati
+                        continue
                     except Exception as e:
-                        add_log("ERROR", f"Gagal memproses cek IMAP: {e}")
+                        add_log("ERROR", f"Gagal memproses cek IMAP: {e}", console_only=True)
                             
                 self.last_imap_check_time = current_time
                 add_log("INFO", f"Selesai. Cek IMAP berikutnya dalam {IMAP_CHECK_INTERVAL_SECONDS} detik.")
@@ -315,38 +356,143 @@ class BackgroundWorker(threading.Thread):
         global IS_BOT_RUNNING
         IS_BOT_RUNNING = False
 
-# --- FLASK APP DAN RUTES API ---
+# --- LOGIKA BOT TELEGRAM ---
+
+# Handler /start
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    add_log("BOT", f"Perintah /start dari {message.from_user.username}")
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    keyboard.add(telebot.types.InlineKeyboardButton(text="Akses Web Dashboard 🌐", url=WEB_URL))
+    
+    bot.reply_to(message, 
+                 f"Halo! Saya Bot Appeal WhatsApp Annas Fix Merah.\n\n"
+                 f"Gunakan perintah berikut:\n"
+                 f"• `/fix <nomor_wa>`: Kirim banding WA.\n"
+                 f"• `/addbot <email> <password>`: Tambah akun pengirim (App Password).\n"
+                 f"• `/status`: Cek status server.\n\n"
+                 f"Atau, klik tombol di bawah untuk membuka web dashboard:", 
+                 reply_markup=keyboard, parse_mode='Markdown')
+
+# Handler /status
+@bot.message_handler(commands=['status'])
+def send_status(message):
+    add_log("BOT", f"Perintah /status dari {message.from_user.username}")
+    status_text = (
+        f"🤖 STATUS SERVER & WEB 🌐\n"
+        f"Server Python: {'✅ AKTIF' if IS_BOT_RUNNING else '❌ OFFLINE'}\n"
+        f"Akun Pengirim: {len(SENDER_ACCOUNTS)} Akun\n"
+        f"Banding Terkirim: {len(RIWAYAT_PENGIRIMAN_GLOBAL)} Riwayat\n"
+        f"IMAP Check: Setiap {IMAP_CHECK_INTERVAL_SECONDS} detik\n"
+        f"Web Dashboard: {WEB_URL}"
+    )
+    bot.reply_to(message, status_text, parse_mode='Markdown')
+
+# Handler /fix <nomor>
+@bot.message_handler(commands=['fix'])
+def handle_fix_appeal(message):
+    try:
+        command_parts = message.text.split(maxsplit=1)
+        if len(command_parts) < 2:
+            bot.reply_to(message, "⚠️ Format salah. Gunakan: `/fix <nomor_wa>` (Contoh: `/fix +62812345678` atau `/fix 0812 345 678`)", parse_mode='Markdown')
+            return
+
+        nomor = command_parts[1].strip()
+        add_log("BOT", f"Perintah /fix untuk nomor: {nomor} dari {message.from_user.username}")
+        
+        bot.reply_to(message, f"⏳ Memproses banding untuk nomor `{nomor}`...", parse_mode='Markdown')
+        
+        status, feedback = kirim_email_banding(nomor)
+        
+        if status:
+            final_message = f"✅ BERHASIL! Banding untuk `{normalize_phone_number(nomor)}` telah dikirim.\n\n_{feedback}_"
+        else:
+            final_message = f"❌ GAGAL! Gagal mengirim banding.\n\n_{feedback}_"
+
+        bot.send_message(message.chat.id, final_message, parse_mode='Markdown')
+
+    except Exception as e:
+        bot.reply_to(message, f"❌ Terjadi kesalahan saat memproses: {e}")
+        add_log("ERROR", f"Kesalahan di /fix: {e}")
+
+# Handler /addbot <email> <password>
+@bot.message_handler(commands=['addbot'])
+def handle_add_bot(message):
+    try:
+        command_parts = message.text.split()
+        if len(command_parts) != 3:
+            bot.reply_to(message, "⚠️ Format salah. Gunakan: `/addbot <email> <app_password>` (App Password 16 digit)", parse_mode='Markdown')
+            return
+
+        email = command_parts[1].strip()
+        password = command_parts[2].strip()
+
+        if '@' not in email or len(password) < 16:
+            bot.reply_to(message, "⚠️ Format Email atau App Password (min 16 digit) salah. Cek kembali.", parse_mode='Markdown')
+            return
+            
+        add_log("BOT", f"Perintah /addbot untuk email: {sensor_email(email)} dari {message.from_user.username}")
+        bot.reply_to(message, f"⏳ Mencoba verifikasi akun `{sensor_email(email)}`...", parse_mode='Markdown')
+
+        # Logika Verifikasi Akun (Sama seperti API)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(email, password)
+        server.close()
+        
+        if any(acc['email'] == email for acc in SENDER_ACCOUNTS):
+            bot.send_message(message.chat.id, f"⚠️ Akun `{sensor_email(email)}` sudah terdaftar sebelumnya.", parse_mode='Markdown')
+            return
+
+        SENDER_ACCOUNTS.append({'email': email, 'password': password})
+        save_accounts()
+        add_log("SUCCESS", f"Akun {sensor_email(email)} berhasil ditambahkan via Bot.")
+        
+        bot.send_message(message.chat.id, 
+                         f"✅ BERHASIL! Akun `{sensor_email(email)}` berhasil ditambahkan dan teruji login.\n"
+                         f"Total Akun Aktif: {len(SENDER_ACCOUNTS)}", 
+                         parse_mode='Markdown')
+
+    except smtplib.SMTPAuthenticationError:
+        bot.reply_to(message, "❌ OTENTIKASI GAGAL. App Password salah atau IMAP/SMTP OFF di pengaturan Google Anda.", parse_mode='Markdown')
+        add_log("ERROR", f"Autentikasi GAGAL via Bot untuk {sensor_email(email)}.")
+    except Exception as e:
+        bot.reply_to(message, f"❌ Terjadi kesalahan saat penambahan akun: {e}", parse_mode='Markdown')
+        add_log("ERROR", f"Kesalahan di /addbot: {e}")
+
+
+def telegram_bot_polling():
+    """Fungsi untuk menjalankan polling Bot Telegram."""
+    add_log("BOT_INIT", "Memulai polling Bot Telegram...")
+    # Menggunakan loop tak terbatas untuk mencoba kembali jika terjadi kesalahan
+    while IS_BOT_RUNNING:
+        try:
+            bot.polling(none_stop=True, interval=3) 
+        except Exception as e:
+            add_log("ERROR", f"Kesalahan Polling Bot Telegram: {e}", console_only=True)
+            time.sleep(15) # Tunggu sebelum mencoba lagi
+
+# --- FLASK APP DAN RUTES API (Web Dashboard) ---
 
 app = Flask(__name__)
-# Enable CORS for Netlify frontend to connect
 CORS(app) 
-
-@app.route('/')
-def serve_index():
-    """Serves index.html from the current directory."""
-    try:
-        # Jika Anda deploy file ini, ini akan mengarahkan ke Netlify.
-        # Jika dijalankan lokal, ini akan mencari index.html
-        return send_from_directory(os.getcwd(), 'index.html')
-    except FileNotFoundError:
-        return "File index.html tidak ditemukan.", 404
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
-    """Returns bot status, logs, and statistics for the web dashboard."""
+    """Mengembalikan status bot, log, dan statistik untuk dashboard web."""
     logs_to_send = list(LOG_QUEUE)
     
     return jsonify({
         'status': 'AKTIF' if IS_BOT_RUNNING else 'OFFLINE',
         'accounts_count': len(SENDER_ACCOUNTS),
         'riwayat_count': len(RIWAYAT_PENGIRIMAN_GLOBAL),
-        'imap_interval': IMAP_CHECK_INTERVALS_SECONDS,
+        'imap_interval': IMAP_CHECK_INTERVAL_SECONDS,
         'logs': logs_to_send
     })
 
 @app.route('/api/send_appeal', methods=['POST'])
 def handle_send_appeal():
-    """Handles appeal sending request from web."""
+    """Menangani permintaan pengiriman banding dari web."""
     data = request.json
     number = data.get('number', '').strip()
 
@@ -355,24 +501,26 @@ def handle_send_appeal():
     
     status, message = kirim_email_banding(number)
     
-    # Return 200 even if email failed, but status=400 in message
+    # Kirim balasan ke konsol/bot tele
+    add_log("WEB_REQ", f"Permintaan Banding Web untuk {normalize_phone_number(number)}: {'Berhasil' if status else 'Gagal'}")
+    
     return jsonify({'message': message, 'status': 'success' if status else 'failed'}), 200
 
 @app.route('/api/add_account', methods=['POST'])
 def handle_add_account():
-    """Handles new account addition request from web."""
+    """Menangani permintaan penambahan akun baru dari web."""
     global SENDER_ACCOUNTS
     data = request.json
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()
 
     if not email or not password or '@' not in email or len(password) < 16:
-        return jsonify({'message': 'Format Email atau App Password salah.'}), 400
+        return jsonify({'message': 'Format Email atau App Password (minimal 16 digit) salah.'}), 400
     
     new_account = {'email': email, 'password': password}
 
     try:
-        # Test SMTP login before adding
+        # Test SMTP login sebelum menambahkan
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.ehlo()
         server.login(email, password)
@@ -383,7 +531,7 @@ def handle_add_account():
 
         SENDER_ACCOUNTS.append(new_account)
         save_accounts()
-        add_log("SUCCESS", f"Akun {sensor_email(email)} berhasil ditambahkan.")
+        add_log("WEB_REQ", f"Akun {sensor_email(email)} berhasil ditambahkan via Web.")
         
         return jsonify({
             'message': f"Akun {sensor_email(email)} berhasil ditambahkan dan teruji login!",
@@ -391,28 +539,40 @@ def handle_add_account():
         }), 200
 
     except smtplib.SMTPAuthenticationError:
-        add_log("ERROR", f"Autentikasi GAGAL untuk {sensor_email(email)}. App Password salah.")
+        add_log("ERROR", f"Autentikasi GAGAL via Web untuk {sensor_email(email)}. Cek App Password/Pengaturan Google.")
         return jsonify({'message': 'Autentikasi GAGAL. Cek App Password/Pengaturan Google Anda.'}), 401
     except Exception as e:
-        add_log("ERROR", f"Terjadi kesalahan saat verifikasi/penambahan: {e}")
+        add_log("ERROR", f"Terjadi kesalahan saat verifikasi/penambahan via Web: {e}")
         return jsonify({'message': f'Terjadi kesalahan saat verifikasi/penambahan: {e}'}), 500
 
-
+# --- MAIN EXECUTION ---
 if __name__ == '__main__':
+    # Memuat data awal
+    load_accounts()
+    load_riwayat()
+
+    # Memulai Thread Background Worker (IMAP Check)
     worker_thread = BackgroundWorker()
     worker_thread.daemon = True 
     worker_thread.start()
     
-    add_log("INIT", f"Bot Aktif! {len(SENDER_ACCOUNTS)} Akun siap. IMAP cek setiap {IMAP_CHECK_INTERVAL_SECONDS}s.")
+    # Memulai Thread Telegram Bot Polling
+    telegram_thread = threading.Thread(target=telegram_bot_polling)
+    telegram_thread.daemon = True
+    telegram_thread.start()
+    
+    add_log("INIT", f"Bot & Server Aktif! {len(SENDER_ACCOUNTS)} Akun siap. API Web di http://127.0.0.1:5000")
     
     try:
-        # Port 5000 adalah port default yang akan di-forward oleh Cloudflared
-        app.run(host='0.0.0.0', port=5000) 
+        # Menjalankan Flask App
+        app.run(host='0.0.0.0', port=5000, debug=False) 
     except KeyboardInterrupt:
         worker_thread.stop()
-        worker_thread.join()
+        telegram_thread.join(timeout=1) # Tunggu sebentar
+        worker_thread.join(timeout=1)
         add_log("FATAL", "Server dihentikan oleh pengguna.")
     except Exception as e:
         worker_thread.stop()
-        worker_thread.join()
+        telegram_thread.join(timeout=1)
+        worker_thread.join(timeout=1)
         add_log("FATAL", f"Kesalahan fatal server: {e}")

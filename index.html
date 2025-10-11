@@ -3,147 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annas Fix Merah - Dashboard Bot Appeal</title>
+    <title>Annas Fix Merah - Dashboard Bot Appeal Premium</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons (Keren dan Ringan) -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #1f2937; } /* Dark background */
-        .log-box { max-height: 450px; overflow-y: scroll; font-size: 0.8rem; background-color: #0f172a; color: #e5e7eb; border-radius: 0.75rem; border: 1px solid #374151; }
+        body { font-family: 'Inter', sans-serif; background-color: #111827; } /* Ultra Dark background */
+        
+        .log-box { 
+            max-height: 250px; 
+            overflow-y: scroll; 
+            font-size: 0.75rem; 
+            background-color: #1f2937; 
+            color: #e5e7eb; 
+            border-radius: 0.75rem; 
+            border: 1px solid #374151; 
+            transition: all 0.3s ease;
+        }
         .log-timestamp { color: #9ca3af; }
-        .log-success { color: #10b981; } /* Emerald Green */
-        .log-error { color: #ef4444; } /* Red */
+        .log-success { color: #34d399; } /* Emerald Green 400 */
+        .log-error { color: #f87171; } /* Red 400 */
         .log-alert { color: #f97316; } /* Orange */
         .log-info { color: #60a5fa; } /* Blue */
-        .card-bg { background-color: #374151; } /* Darker card background */
-        .red-primary { background-color: #b91c1c; } /* Tailwind Red-700 */
-        .red-hover:hover { background-color: #991b1b; } /* Tailwind Red-800 */
+
+        .card-bg { background-color: #1f2937; } /* Darker card background */
+        .red-primary { background-color: #dc2626; } /* Tailwind Red-600 */
+        .red-hover:hover { background-color: #b91c1c; } /* Tailwind Red-700 */
+        
         /* Animasi sinyal untuk status AKTIF */
-        .shine-animation { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .shine-animation { 
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+            box-shadow: 0 0 10px rgba(132, 204, 22, 0.7); /* Lime 400 glow */
+        }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+
         /* Style untuk scrollbar (untuk estetika gelap) */
-        .log-box::-webkit-scrollbar { width: 8px; }
-        .log-box::-webkit-scrollbar-track { background: #1f2937; }
-        .log-box::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 20px; border: 2px solid #1f2937; }
+        .log-box::-webkit-scrollbar { width: 6px; }
+        .log-box::-webkit-scrollbar-track { background: #111827; }
+        .log-box::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 20px; border: 1px solid #1f2937; }
     </style>
 </head>
-<body class="p-4 sm:p-6 min-h-screen flex justify-center">
+<body class="p-4 sm:p-6 min-h-screen flex justify-center items-start">
 
-    <div class="container-wrapper w-full max-w-lg lg:max-w-xl card-bg text-gray-100 shadow-2xl rounded-2xl p-6 md:p-8 border border-gray-600">
+    <!-- Tombol Dev di Pojok Kiri Atas -->
+    <button onclick="document.getElementById('dev-info').classList.toggle('hidden')" 
+            class="fixed top-4 left-4 z-40 p-3 bg-gray-700 hover:bg-red-600 text-white rounded-full shadow-lg transition duration-200 transform hover:scale-105">
+        <i data-lucide="code-square" class="w-5 h-5"></i>
+    </button>
+    
+    <!-- Informasi Dev (Awalnya Tersembunyi) -->
+    <div id="dev-info" class="fixed top-16 left-4 z-40 p-4 bg-gray-800 rounded-lg shadow-xl text-sm text-gray-300 w-64 hidden border border-red-600 transition duration-300">
+        <h3 class="font-bold text-red-400 mb-2">Informasi Developer</h3>
+        <p>Logo: @Alpoooooooofoluv</p>
+        <p>Project: Annas Fix Merah</p>
+        <p class="mt-2 text-xs text-gray-500">Klik lagi untuk menutup.</p>
+    </div>
+
+    <div class="container-wrapper w-full max-w-md lg:max-w-xl card-bg text-gray-100 shadow-2xl rounded-2xl p-6 md:p-8 border border-gray-700 mt-6 lg:mt-12 transition-all duration-300">
         
         <header class="text-center mb-8">
             <div class="flex justify-center items-center text-red-600 mb-2">
-                <!-- Logo yang Sesuai -->
-                <img src="https://files.catbox.moe/tgaqqj.jpeg" alt="Profile" class="w-12 h-12 rounded-full mr-3 object-cover border-2 border-red-600 shadow-md">
-                <h1 class="text-4xl font-black text-white tracking-wider">ANNAS FIX MERAH</h1>
+                <!-- Logo Annas Fix Merah (Agak Besar) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mr-3 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"></path>
+                    <path d="M16 8a4 4 0 0 0-8 0"></path>
+                    <path d="M12 16h.01"></path>
+                    <path d="M10 10a2 2 0 1 0 4 0a2 2 0 1 0-4 0z" fill="currentColor"></path>
+                </svg>
+                <h1 class="text-3xl font-black text-white tracking-widest">ANNAS FIX MERAH</h1>
             </div>
-            <p class="text-sm text-gray-400">Panel Kontrol Bot Appeal WhatsApp</p>
+            <p class="text-sm text-gray-400 font-medium">Panel Kontrol Bot Appeal Premium</p>
         </header>
 
         <!-- Status & Statistik -->
-        <section class="mb-6 p-4 bg-gray-700 rounded-xl shadow-lg border-t-4 border-red-600">
+        <section class="mb-6 p-4 bg-gray-800 rounded-xl shadow-inner border-t-4 border-red-600 transition-all duration-300">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-200 flex items-center">
-                    <i data-lucide="zap" class="w-5 h-5 mr-2 text-red-500"></i>
-                    Status Server
+                    <i data-lucide="zap" class="w-5 h-5 mr-2 text-red-500 animate-pulse"></i>
+                    Status Bot
                 </h2>
-                <div id="status-display" class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg">Loading...</div>
+                <div id="status-display" class="px-3 py-1 text-xs font-extrabold rounded-full text-white shadow-lg">
+                    Loading...
+                </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="p-3 bg-gray-800 rounded-lg shadow-inner">
-                    <p class="text-xs font-medium text-gray-400">Total Akun Aktif</p>
-                    <p id="accounts-count" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="p-3 bg-gray-900 rounded-lg shadow-md transition-shadow hover:shadow-red-500/30">
+                    <p class="text-xs font-medium text-gray-400">Akun Aktif</p>
+                    <p id="accounts-count" class="text-2xl font-extrabold text-green-400 mt-1">0</p>
                 </div>
-                <div class="p-3 bg-gray-800 rounded-lg shadow-inner">
-                    <p class="text-xs font-medium text-gray-400">Banding Terkirim</p>
-                    <p id="riwayat-count" class="text-3xl font-extrabold text-white mt-1">0</p>
+                <div class="p-3 bg-gray-900 rounded-lg shadow-md transition-shadow hover:shadow-red-500/30">
+                    <p class="text-xs font-medium text-gray-400">Banding Total</p>
+                    <p id="riwayat-count" class="text-2xl font-extrabold text-red-400 mt-1">0</p>
+                </div>
+                <div class="p-3 bg-gray-900 rounded-lg shadow-md transition-shadow hover:shadow-red-500/30">
+                    <p class="text-xs font-medium text-gray-400">Cek IMAP</p>
+                    <p id="imap-interval-display" class="text-2xl font-extrabold text-white mt-1">60s</p>
                 </div>
             </div>
         </section>
 
         <!-- Form Kirim Banding -->
-        <section class="mb-6 p-5 bg-gray-700 rounded-xl shadow-lg">
-            <h2 class="text-xl font-bold text-red-500 mb-4 flex items-center">
+        <section class="mb-6 p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-lg font-bold text-red-500 mb-4 flex items-center">
                 <i data-lucide="send" class="w-5 h-5 mr-2"></i>
-                Kirim Banding
+                KIRIM BANDING WA UNLIMITED
             </h2>
             <form id="appeal-form" class="space-y-4">
                 <div>
-                    <label for="number" class="block text-sm font-medium text-gray-300">Nomor WhatsApp Target</label>
-                    <input type="text" id="number" name="number" required placeholder="Contoh: +628xxxxxxxx"
-                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-gray-800 text-white sm:text-base transition">
+                    <label for="number" class="block text-xs font-medium text-gray-300 mb-1">Nomor WhatsApp Target (Contoh: +628xxxx, 08xx, 628xx, semua format)</label>
+                    <input type="text" id="number" name="number" required placeholder="Masukkan nomor yang akan di-fix..."
+                           class="mt-1 block w-full px-4 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-gray-900 text-white text-sm transition">
                 </div>
                 <button type="submit" id="send-appeal-btn"
-                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-xl text-base font-semibold text-white red-primary red-hover transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-red-600 focus:ring-opacity-50">
-                    <i data-lucide="mail-plus" class="w-5 h-5 mr-2"></i>
+                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-xl text-sm font-semibold text-white red-primary red-hover transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-red-600 focus:ring-opacity-50">
+                    <i data-lucide="mail-plus" class="w-4 h-4 mr-2"></i>
                     EKSEKUSI BANDING SEKARANG
                 </button>
-                <p id="appeal-message" class="text-center text-sm mt-2 font-medium"></p>
+                <p id="appeal-message" class="text-center text-xs mt-2 font-medium"></p>
             </form>
         </section>
 
         <!-- Form Tambah Akun -->
-        <section class="mb-6 p-5 bg-gray-700 rounded-xl shadow-lg">
-            <h2 class="text-xl font-bold text-green-500 mb-4 flex items-center">
+        <section class="mb-6 p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-lg font-bold text-green-500 mb-4 flex items-center">
                 <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i>
-                Tambah Akun Pengirim (SMTP/IMAP)
+                TAMBAH AKUN PENGIRIM (App Password)
             </h2>
-            <form id="add-account-form" class="space-y-4">
+            <p class="text-xs text-gray-400 mb-3">Email yang ditambahkan akan digunakan secara acak untuk mengirim banding (Unlimited Cek & Tambal).</p>
+            <form id="add-account-form" class="space-y-3">
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300">Email Pengirim (Gmail)</label>
+                    <label for="email" class="block text-xs font-medium text-gray-300 mb-1">Email Aktif (Gmail)</label>
                     <input type="email" id="email" name="email" required placeholder="emailanda@gmail.com"
-                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-800 text-white sm:text-base transition">
+                           class="mt-1 block w-full px-4 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-900 text-white text-sm transition">
                 </div>
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300">App Password (16 Digit)</label>
+                    <label for="password" class="block text-xs font-medium text-gray-300 mb-1">App Password (16 Digit)</label>
                     <input type="password" id="password" name="password" required placeholder="xxxx xxxx xxxx xxxx"
-                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-800 text-white sm:text-base transition">
+                           class="mt-1 block w-full px-4 py-2 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-900 text-white text-sm transition">
                 </div>
                 <button type="submit" id="add-account-btn"
-                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-xl text-base font-semibold text-white bg-green-600 hover:bg-green-700 transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-green-600 focus:ring-opacity-50">
-                    <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
-                    Tambahkan & Verifikasi Akun
+                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-green-600 focus:ring-opacity-50">
+                    <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
+                    Tambahkan Akun & Unlock Email
                 </button>
-                <p id="add-account-message" class="text-center text-sm mt-2 font-medium"></p>
+                <p id="add-account-message" class="text-center text-xs mt-2 font-medium"></p>
             </form>
         </section>
 
         <!-- Konsol Log -->
-        <section class="p-5 bg-gray-700 rounded-xl shadow-lg">
-            <h2 class="text-xl font-bold text-gray-200 mb-4 flex items-center">
+        <section class="p-5 bg-gray-800 rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-lg font-bold text-gray-200 mb-3 flex items-center">
                 <i data-lucide="terminal" class="w-5 h-5 mr-2 text-gray-400"></i>
-                Konsol Log Bot (Realtime)
+                KONSOL LOG BOT (Realtime Riwayat)
             </h2>
             <div id="log-display" class="log-box p-4">
-                <div class="text-gray-500">Menunggu koneksi dari Termux...</div>
+                <div class="text-gray-500">Menunggu koneksi dari server Python/Termux...</div>
             </div>
         </section>
 
-        <!-- Footer Developer Credit -->
-        <footer class="mt-8 pt-4 border-t border-gray-600 text-center">
-            <div class="text-sm text-gray-400 flex items-center justify-center">
-                <i data-lucide="code-square" class="w-4 h-4 mr-1 text-red-500"></i>
-                Developer: 
-                <button onclick="alert('Logo: @Alpoooooooofoluv\nProject: Annas Fix Merah')" 
-                        class="ml-2 font-semibold text-red-400 hover:text-red-300 transition transform hover:scale-105">
-                    @Alpoooooooofoluv
-                </button>
-            </div>
-        </footer>
     </div>
 
+    <!-- PEMBERITAHUAN WAJIB CENTANG (MODAL) -->
+    <div id="disclaimer-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90 transition-opacity duration-300">
+        <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl w-11/12 max-w-sm border-t-4 border-red-600 transform scale-100 transition-transform duration-300">
+            <h3 class="text-xl font-bold text-red-400 mb-4 flex items-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6 mr-2 text-red-500"></i>
+                PEMBERITAHUAN PENTING
+            </h3>
+            <p class="text-sm text-gray-300 mb-4">
+                Selamat datang di Dashboard Annas Fix Merah. Demi kelancaran proses banding, harap tambahkan akun email aktif Anda menggunakan App Password 16 digit.
+            </p>
+            <div class="flex items-center mb-6 p-3 bg-gray-700 rounded-lg">
+                <input id="disclaimer-checkbox" type="checkbox" class="w-4 h-4 text-red-600 bg-gray-600 border-gray-500 rounded focus:ring-red-500">
+                <label for="disclaimer-checkbox" class="ml-2 text-sm font-medium text-gray-300 cursor-pointer">
+                    Saya sudah membaca dan memahami instruksi ini.
+                </label>
+            </div>
+            <button id="close-disclaimer-btn" disabled
+                    class="w-full py-3 px-4 rounded-lg text-gray-400 bg-gray-600 cursor-not-allowed text-sm font-semibold transition duration-200">
+                Oke, Lanjutkan ke Dashboard
+            </button>
+        </div>
+    </div>
+    
     <script>
-const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
-
+        // PENTING: GANTI DENGAN URL CLOUDFLARE TUNNEL ANDA
+        const API_BASE_URL = 'http://127.0.0.1:5000'; 
+        // const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com'; // Placeholder dari user
 
         // -----------------------------------------------------------------
         
         const statusDisplay = document.getElementById('status-display');
         const accountsCount = document.getElementById('accounts-count');
         const riwayatCount = document.getElementById('riwayat-count');
+        const imapIntervalDisplay = document.getElementById('imap-interval-display');
         const logDisplay = document.getElementById('log-display');
         const appealForm = document.getElementById('appeal-form');
         const addAccountForm = document.getElementById('add-account-form');
@@ -151,60 +207,94 @@ const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
         const addAccountMessage = document.getElementById('add-account-message');
         const sendAppealBtn = document.getElementById('send-appeal-btn');
         const addAccountBtn = document.getElementById('add-account-btn');
+        
+        // Modal Disclaimer
+        const modal = document.getElementById('disclaimer-modal');
+        const checkbox = document.getElementById('disclaimer-checkbox');
+        const closeButton = document.getElementById('close-disclaimer-btn');
 
         lucide.createIcons();
 
+        // --- UTILITY FUNCTIONS ---
         function setButtonState(button, isLoading, originalText) {
             button.disabled = isLoading;
-            button.innerHTML = isLoading ? '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...' : originalText;
+            button.innerHTML = isLoading 
+                ? '<svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...' 
+                : originalText;
         }
 
         function displayMessage(element, message, isSuccess) {
             element.textContent = message;
-            element.className = `text-center text-sm mt-2 font-medium ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
+            element.className = `text-center text-xs mt-2 font-medium transition duration-300 ${isSuccess ? 'text-green-400' : 'text-red-400'}`;
         }
 
         function formatLogEntry(log) {
             let colorClass = 'log-info';
-            if (log.level === 'SUCCESS') colorClass = 'log-success';
+            if (log.level === 'SUCCESS') colorClass = 'log-success font-semibold';
             if (log.level === 'ERROR' || log.level === 'FATAL') colorClass = 'log-error font-bold';
-            if (log.level === 'ALERT' || log.level === 'WARN') colorClass = 'log-alert';
+            if (log.level === 'ALERT' || log.level === 'WARN') colorClass = 'log-alert font-medium';
+            if (log.level === 'INIT' || log.level === 'BOT_INIT') colorClass = 'text-yellow-400';
 
-            return `<div class="mb-1 text-gray-400"><span class="log-timestamp">${log.timestamp}</span> <span class="font-bold ${colorClass}">[${log.level}]</span> ${log.message}</div>`;
+            return `<div class="mb-1 p-1 hover:bg-gray-700 rounded transition duration-150"><span class="log-timestamp">${log.timestamp}</span> <span class="font-bold ${colorClass}">[${log.level}]</span> ${log.message}</div>`;
+        }
+        
+        // --- API & UI LOGIC ---
+        async function fetchWithRetry(url, options = {}) {
+            const maxRetries = 3;
+            let lastError = null;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    } else if (response.status === 409) {
+                        // Conflict, do not retry
+                        return response;
+                    } else {
+                        throw new Error(`HTTP status: ${response.status}`);
+                    }
+                } catch (error) {
+                    lastError = error;
+                    // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+            throw new Error(`Failed after ${maxRetries} attempts. Last error: ${lastError.message}`);
         }
 
         async function fetchStatus() {
             let isConnected = false;
             try {
-                const response = await fetch(`${API_BASE_URL}/api/status`);
-                if (!response.ok) { throw new Error(`HTTP status: ${response.status}`); }
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/status`);
                 const data = await response.json();
                 isConnected = true;
 
                 statusDisplay.textContent = data.status;
                 // Mengatur status display dengan animasi bersinar (shine-animation)
-                statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg ${data.status === 'AKTIF' ? 'bg-green-500 shine-animation' : 'bg-red-700'}`;
+                statusDisplay.className = `px-3 py-1 text-xs font-extrabold rounded-full text-white shadow-lg ${data.status === 'AKTIF' ? 'bg-lime-500 shine-animation' : 'bg-red-700'}`;
                 accountsCount.textContent = data.accounts_count;
                 riwayatCount.textContent = data.riwayat_count;
+                imapIntervalDisplay.textContent = `${data.imap_interval}s`;
                 
-                // Tambahkan pesan interval IMAP ke log jika server aktif
+                // Tampilkan log terbaru
+                logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
+                logDisplay.scrollTop = 0; // Pastikan scroll di atas
+                
                 if (data.status === 'AKTIF' && data.logs.length === 0) {
-                     logDisplay.innerHTML = `<div class="text-green-400 font-bold">✅ Server Terhubung. Bot aktif. Cek IMAP setiap ${data.imap_interval} detik.</div>`;
-                } else if (data.status === 'AKTIF') {
-                    // Tampilkan log terbaru
-                    logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
+                     logDisplay.innerHTML = `<div class="text-green-400 font-semibold p-1">✅ Server Terhubung & Aktif. Cek IMAP setiap ${data.imap_interval} detik.</div>`;
                 }
-
 
             } catch (error) {
                 statusDisplay.textContent = 'OFFLINE';
-                statusDisplay.className = 'px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg bg-red-700';
+                statusDisplay.className = 'px-3 py-1 text-xs font-extrabold rounded-full text-white shadow-lg bg-red-700';
                 if (!isConnected) {
-                   logDisplay.innerHTML = `<div class="text-red-400 font-bold">❌ Gagal terhubung ke API (${API_BASE_URL}). Pastikan Cloudflared & server Python berjalan di Termux!</div>`;
+                   logDisplay.innerHTML = `<div class="text-red-400 font-bold p-1">❌ Gagal terhubung ke API (${API_BASE_URL}). Pastikan Cloudflared & server Python berjalan!</div>`;
                 }
             }
         }
 
+        // --- EVENT LISTENERS ---
         appealForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const originalText = sendAppealBtn.innerHTML;
@@ -214,7 +304,7 @@ const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
             const number = document.getElementById('number').value.trim();
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/send_appeal`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/send_appeal`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ number })
@@ -240,7 +330,7 @@ const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
             const password = document.getElementById('password').value.trim();
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/add_account`, {
+                const response = await fetchWithRetry(`${API_BASE_URL}/api/add_account`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -259,9 +349,27 @@ const API_BASE_URL = 'https://moderate-nyc-david-seats.trycloudflare.com';
             }
         });
 
+        // --- MODAL DISCLOSURE LISTENERS ---
+        closeButton.disabled = true;
+
+        checkbox.addEventListener('change', () => {
+            closeButton.disabled = !checkbox.checked;
+            closeButton.className = checkbox.checked 
+                ? 'w-full py-3 px-4 rounded-lg text-white font-semibold red-primary red-hover transition duration-200 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50' 
+                : 'w-full py-3 px-4 rounded-lg text-gray-400 bg-gray-600 cursor-not-allowed text-sm font-semibold transition duration-200';
+        });
+
+        closeButton.addEventListener('click', () => {
+            if (checkbox.checked) {
+                modal.classList.add('opacity-0');
+                // Sembunyikan setelah transisi selesai
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', () => {
             fetchStatus();
-            setInterval(fetchStatus, 3000); 
+            setInterval(fetchStatus, 3000); // Polling setiap 3 detik
             lucide.createIcons();
         });
     </script>
