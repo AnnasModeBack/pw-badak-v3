@@ -325,6 +325,8 @@ CORS(app)
 def serve_index():
     """Serves index.html from the current directory."""
     try:
+        # Jika Anda deploy file ini, ini akan mengarahkan ke Netlify.
+        # Jika dijalankan lokal, ini akan mencari index.html
         return send_from_directory(os.getcwd(), 'index.html')
     except FileNotFoundError:
         return "File index.html tidak ditemukan.", 404
@@ -338,7 +340,7 @@ def get_status():
         'status': 'AKTIF' if IS_BOT_RUNNING else 'OFFLINE',
         'accounts_count': len(SENDER_ACCOUNTS),
         'riwayat_count': len(RIWAYAT_PENGIRIMAN_GLOBAL),
-        'imap_interval': IMAP_CHECK_INTERVAL_SECONDS,
+        'imap_interval': IMAP_CHECK_INTERVALS_SECONDS,
         'logs': logs_to_send
     })
 
@@ -353,7 +355,8 @@ def handle_send_appeal():
     
     status, message = kirim_email_banding(number)
     
-    return jsonify({'message': message, 'status': 'success' if status else 'failed'}), 200 if status else 400
+    # Return 200 even if email failed, but status=400 in message
+    return jsonify({'message': message, 'status': 'success' if status else 'failed'}), 200
 
 @app.route('/api/add_account', methods=['POST'])
 def handle_add_account():
@@ -403,7 +406,8 @@ if __name__ == '__main__':
     add_log("INIT", f"Bot Aktif! {len(SENDER_ACCOUNTS)} Akun siap. IMAP cek setiap {IMAP_CHECK_INTERVAL_SECONDS}s.")
     
     try:
-        app.run(host='0.0.0.0', port=5000)
+        # Port 5000 adalah port default yang akan di-forward oleh Cloudflared
+        app.run(host='0.0.0.0', port=5000) 
     except KeyboardInterrupt:
         worker_thread.stop()
         worker_thread.join()
