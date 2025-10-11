@@ -1,50 +1,254 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAYMENT ZYRO</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annas Fix Merah - Dashboard Bot Appeal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons (Keren dan Ringan) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #1f2937; } /* Dark background */
+        .log-box { max-height: 450px; overflow-y: scroll; font-size: 0.8rem; background-color: #0f172a; color: #e5e7eb; border-radius: 0.75rem; border: 1px solid #374151; }
+        .log-timestamp { color: #9ca3af; }
+        .log-success { color: #10b981; } /* Emerald Green */
+        .log-error { color: #ef4444; } /* Red */
+        .log-alert { color: #f97316; } /* Orange */
+        .log-info { color: #60a5fa; } /* Blue */
+        .card-bg { background-color: #374151; } /* Darker card background */
+        .red-primary { background-color: #b91c1c; } /* Tailwind Red-700 */
+        .red-hover:hover { background-color: #991b1b; } /* Tailwind Red-800 */
+        .shine-animation { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+    </style>
 </head>
-<body>
-  <div class="wrapper">
-    <div id="homePage">
-      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
-      <h1>WELCOME TO ZYRO</h1>
-      <button class="button" onclick="goToPayment()">PAYMENT</button>
-    </div>
+<body class="p-4 sm:p-6 min-h-screen flex justify-center">
 
-    <div id="paymentPage" class="hidden">
-      <img src="https://f.top4top.io/p_3506a98ik1.jpg" alt="Logo" class="thumbnail" />
-      <h1>PAYMENT ZYRO</h1>
-      <button class="button" id="togglePaymentBtn">ALL PAYMENT</button>
-
-      <div class="payment-info" id="paymentInfo">
-        <div class="copy-section">
-          <div class="qris-box">
-            <div class="qris-container-wrapper">
-              <div class="qris-container" id="qrisContainer">
-                <img src="https://g.top4top.io/p_34926winh1.jpg" alt="QRIS" class="qris-img" id="qrisImage" />
-              </div>
+    <div class="container-wrapper w-full max-w-lg lg:max-w-xl card-bg text-gray-100 shadow-2xl rounded-2xl p-6 md:p-8 border border-gray-600">
+        
+        <header class="text-center mb-8">
+            <div class="flex justify-center items-center text-red-600 mb-2">
+                <i data-lucide="shield-alert" class="w-10 h-10 mr-2 text-red-600"></i>
+                <h1 class="text-4xl font-black text-white tracking-wider">ANNAS FIX MERAH</h1>
             </div>
-            <button class="qr-download-btn" id="qrDownloadBtn">Download QR</button>
-            <small class="qr-hint">📌 Tekan lama gambar jika ingin simpan ke galeri</small>
-          </div>
+            <p class="text-sm text-gray-400">Panel Kontrol Bot Appeal WhatsApp</p>
+        </header>
 
-          <div class="dana-box">DANA: <span id="danaNumber">088290828027</span></div>
-          <button class="copy-button" id="copyDanaBtn">Salin Nomor</button>
+        <!-- Status & Statistik -->
+        <section class="mb-6 p-4 bg-gray-700 rounded-xl shadow-lg border-t-4 border-red-600">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-200 flex items-center">
+                    <i data-lucide="zap" class="w-5 h-5 mr-2 text-red-500"></i>
+                    Status Server
+                </h2>
+                <div id="status-display" class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg shine-animation">Loading...</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="p-3 bg-gray-800 rounded-lg shadow-inner">
+                    <p class="text-xs font-medium text-gray-400">Total Akun Aktif</p>
+                    <p id="accounts-count" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
+                </div>
+                <div class="p-3 bg-gray-800 rounded-lg shadow-inner">
+                    <p class="text-xs font-medium text-gray-400">Banding Terkirim</p>
+                    <p id="riwayat-count" class="text-3xl font-extrabold text-white mt-1">0</p>
+                </div>
+            </div>
+        </section>
 
-          <div id="copiedMessage" class="copied-msg hidden">
-            ✅ Nomor DANA disalin
-            <button class="confirm-button" id="confirmCopyBtn">OKE</button>
-          </div>
-        </div>
-      </div>
+        <!-- Form Kirim Banding -->
+        <section class="mb-6 p-5 bg-gray-700 rounded-xl shadow-lg">
+            <h2 class="text-xl font-bold text-red-500 mb-4 flex items-center">
+                <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                Kirim Banding
+            </h2>
+            <form id="appeal-form" class="space-y-4">
+                <div>
+                    <label for="number" class="block text-sm font-medium text-gray-300">Nomor WhatsApp Target</label>
+                    <input type="text" id="number" name="number" required placeholder="Contoh: +628xxxxxxxx"
+                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-gray-800 text-white sm:text-base transition">
+                </div>
+                <button type="submit" id="send-appeal-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-xl text-base font-semibold text-white red-primary red-hover transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-red-600 focus:ring-opacity-50">
+                    <i data-lucide="mail-plus" class="w-5 h-5 mr-2"></i>
+                    EKSEKUSI BANDING SEKARANG
+                </button>
+                <p id="appeal-message" class="text-center text-sm mt-2 font-medium"></p>
+            </form>
+        </section>
 
-      <button class="back-btn" onclick="backToHome()">⬅ BACK</button>
+        <!-- Form Tambah Akun -->
+        <section class="mb-6 p-5 bg-gray-700 rounded-xl shadow-lg">
+            <h2 class="text-xl font-bold text-green-500 mb-4 flex items-center">
+                <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i>
+                Tambah Akun Pengirim (SMTP/IMAP)
+            </h2>
+            <form id="add-account-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-300">Email Pengirim (Gmail)</label>
+                    <input type="email" id="email" name="email" required placeholder="emailanda@gmail.com"
+                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-800 text-white sm:text-base transition">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-300">App Password (16 Digit)</label>
+                    <input type="password" id="password" name="password" required placeholder="xxxx xxxx xxxx xxxx"
+                           class="mt-1 block w-full px-4 py-3 border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 bg-gray-800 text-white sm:text-base transition">
+                </div>
+                <button type="submit" id="add-account-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-xl text-base font-semibold text-white bg-green-600 hover:bg-green-700 transform hover:scale-[1.01] transition duration-200 focus:outline-none focus:ring-4 focus:ring-green-600 focus:ring-opacity-50">
+                    <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                    Tambahkan & Verifikasi Akun
+                </button>
+                <p id="add-account-message" class="text-center text-sm mt-2 font-medium"></p>
+            </form>
+        </section>
+
+        <!-- Konsol Log -->
+        <section class="p-5 bg-gray-700 rounded-xl shadow-lg">
+            <h2 class="text-xl font-bold text-gray-200 mb-4 flex items-center">
+                <i data-lucide="terminal" class="w-5 h-5 mr-2 text-gray-400"></i>
+                Konsol Log Bot (Realtime)
+            </h2>
+            <div id="log-display" class="log-box p-4">
+                <div class="text-gray-500">Menunggu koneksi dari Termux...</div>
+            </div>
+        </section>
+
+        <!-- Footer Developer Credit -->
+        <footer class="mt-8 pt-4 border-t border-gray-600 text-center">
+            <div class="text-sm text-gray-400 flex items-center justify-center">
+                <i data-lucide="code-square" class="w-4 h-4 mr-1 text-red-500"></i>
+                Developer: 
+                <button onclick="alert('Logo: @Alpoooooooofoluv\nProject: Annas Fix Merah')" 
+                        class="ml-2 font-semibold text-red-400 hover:text-red-300 transition transform hover:scale-105">
+                    @Alpoooooooofoluv
+                </button>
+            </div>
+        </footer>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script>
+        // PENTING: GANTI DENGAN URL NGROK HTTPS ANDA SEBELUM DEPLOY!
+        const API_BASE_URL = 'https://[URL_NGROK_ANDA].ngrok-free.app'; 
+        // -----------------------------------------------------------------
+        
+        const statusDisplay = document.getElementById('status-display');
+        const accountsCount = document.getElementById('accounts-count');
+        const riwayatCount = document.getElementById('riwayat-count');
+        const logDisplay = document.getElementById('log-display');
+        const appealForm = document.getElementById('appeal-form');
+        const addAccountForm = document.getElementById('add-account-form');
+        const appealMessage = document.getElementById('appeal-message');
+        const addAccountMessage = document.getElementById('add-account-message');
+        const sendAppealBtn = document.getElementById('send-appeal-btn');
+        const addAccountBtn = document.getElementById('add-account-btn');
+
+        lucide.createIcons();
+
+        function setButtonState(button, isLoading, originalText) {
+            button.disabled = isLoading;
+            button.innerHTML = isLoading ? '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...' : originalText;
+        }
+
+        function displayMessage(element, message, isSuccess) {
+            element.textContent = message;
+            element.className = `text-center text-sm mt-2 font-medium ${isSuccess ? 'text-green-500' : 'text-red-500'}`;
+        }
+
+        function formatLogEntry(log) {
+            let colorClass = 'log-info';
+            if (log.level === 'SUCCESS') colorClass = 'log-success';
+            if (log.level === 'ERROR' || log.level === 'FATAL') colorClass = 'log-error font-bold';
+            if (log.level === 'ALERT' || log.level === 'WARN') colorClass = 'log-alert';
+
+            return `<div class="mb-1 text-gray-400"><span class="log-timestamp">${log.timestamp}</span> <span class="font-bold ${colorClass}">[${log.level}]</span> ${log.message}</div>`;
+        }
+
+        async function fetchStatus() {
+            let isConnected = false;
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/status`);
+                if (!response.ok) { throw new Error(`HTTP status: ${response.status}`); }
+                const data = await response.json();
+                isConnected = true;
+
+                statusDisplay.textContent = data.status;
+                statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg ${data.status === 'AKTIF' ? 'bg-green-500 shine-animation' : 'bg-red-500'}`;
+                accountsCount.textContent = data.accounts_count;
+                riwayatCount.textContent = data.riwayat_count;
+
+                logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
+
+            } catch (error) {
+                statusDisplay.textContent = 'OFFLINE';
+                statusDisplay.className = 'px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg bg-red-700';
+                if (!isConnected) {
+                   logDisplay.innerHTML = `<div class="text-red-400 font-bold">❌ Gagal terhubung ke API (${API_BASE_URL}). Pastikan Ngrok & server Python berjalan di Termux!</div>`;
+                }
+            }
+        }
+
+        appealForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalText = sendAppealBtn.innerHTML;
+            setButtonState(sendAppealBtn, true, originalText);
+            appealMessage.textContent = '';
+
+            const number = document.getElementById('number').value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/send_appeal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number })
+                });
+
+                const result = await response.json();
+                displayMessage(appealMessage, result.message, response.ok);
+            } catch (error) {
+                displayMessage(appealMessage, 'Gagal terhubung ke server atau terjadi kesalahan jaringan.', false);
+            } finally {
+                setButtonState(sendAppealBtn, false, originalText);
+                fetchStatus();
+            }
+        });
+
+        addAccountForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalText = addAccountBtn.innerHTML;
+            setButtonState(addAccountBtn, true, originalText);
+            addAccountMessage.textContent = '';
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/add_account`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                displayMessage(addAccountMessage, result.message, response.ok);
+                
+                if (response.ok) { addAccountForm.reset(); }
+
+            } catch (error) {
+                displayMessage(addAccountMessage, 'Gagal terhubung ke server atau terjadi kesalahan jaringan.', false);
+            } finally {
+                setButtonState(addAccountBtn, false, originalText);
+                fetchStatus();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStatus();
+            setInterval(fetchStatus, 3000); 
+        });
+    </script>
 </body>
 </html>
+
