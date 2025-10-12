@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annas Fix Merah - Dashboard Bot Appeal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Font Inter untuk Keterbacaan Modern */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #000000;
+            min-height: 100vh;
+            color: #e2e8f0; 
+            overflow-x: hidden; /* Mencegah scroll horizontal */
+        } 
+
+        /* Gaya Premium: Box Shadow Halus dan Dalam */
+        .card-shadow { 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 5px 15px rgba(0, 0, 0, 0.4); 
+        }
+        /* Background Card yang Lebih Terang dari Body, Tapi Tetap Gelap */
+        .card-bg { 
+            background-color: #181a20; 
+            border: 1px solid #2d3748; 
+            transition: all 0.3s ease;
+        } 
+        /* Warna Merah Khas */
+        .red-primary { background-color: #dc2626; } /* Tailwind red-600 */
+        .red-hover:hover { background-color: #b91c1c; } /* Tailwind red-700 */
+        .red-text { color: #dc2626; }
+
+        /* Konsol Log Estetika */
+        .log-box { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            font-size: 0.8rem; 
+            background-color: #0d0d0d; 
+            color: #e5e7eb; 
+            border-radius: 0.75rem; 
+            border: 2px solid #374151; 
+            padding: 1rem; 
+            display: flex;
+            flex-direction: column-reverse; /* Log terbaru di atas */
+        }
+        .log-timestamp { color: #525252; }
+        .log-success { color: #10b981; } 
+        .log-error { color: #ef4444; } 
+        .log-alert { color: #facc15; } 
+        .log-info { color: #60a5fa; } 
+        
+        /* Animasi Sinyal (Lebih Halus) */
+        .shine-animation { animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-subtle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .9; transform: scale(1.01); } }
+        
+        /* Transisi Tombol & Input */
+        .btn-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-style { 
+            border-radius: 0.5rem; 
+            border: 1px solid #4a5568; 
+            background-color: #2d3748; 
+            color: #e2e8f0; 
+            padding: 0.75rem 1rem; 
+        }
+        .input-style:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.5); 
+        }
+
+        /* Scrollbar Estetika (Minimalis) */
+        .log-box::-webkit-scrollbar { width: 6px; }
+        .log-box::-webkit-scrollbar-track { background: #181a20; }
+        .log-box::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 3px; }
+        .log-box::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
+
+        /* Utility untuk animasi masuk */
+        @keyframes fadeInZoom { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .animate-in { animation: fadeInZoom 0.4s ease-out forwards; }
+
+        /* --- 3D / TECH HOLOGRAM BACKGROUND ANIMATION (Keren) --- */
+        #tech-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+            overflow: hidden;
+            opacity: 0.3; /* Sedikit transparan agar tidak mengganggu fokus */
+        }
+        .animated-grid {
+            width: 300vw;
+            height: 300vh;
+            background-image: 
+                radial-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px),
+                radial-gradient(rgba(220, 38, 38, 0.1) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            animation: grid-move 60s linear infinite;
+            transform: translate3d(0, 0, 0); /* Force hardware acceleration */
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(-50%, -50%); }
+            100% { transform: translate(0, 0); }
+        }
+        
+    </style>
+</head>
+<body class="p-4 sm:p-6 min-h-screen flex justify-center items-center relative">
+    
+    <!-- Animasi Latar Belakang 3D/Teknologi (Hologram) -->
+    <div id="tech-background">
+        <div class="animated-grid absolute top-0 left-0"></div>
+    </div>
+
+    <!-- Modal Pemberitahuan Wajib (Phase 1) - Pemberitahuan centang di awal -->
+    <div id="notification-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black bg-opacity-90">
+        <div class="card-bg w-full max-w-sm rounded-2xl p-6 card-shadow border-t-4 border-red-600 animate-in">
+            <div class="flex items-center mb-4 border-b border-gray-600 pb-3">
+                <i data-lucide="siren" class="w-7 h-7 mr-3 text-red-500 animate-pulse"></i>
+                <h2 class="text-xl font-bold text-white">SELAMAT DATANG DI WEBSITE FIX MERAH</h2>
+            </div>
+            
+            <p class="text-sm text-gray-300 mb-6 border-l-4 border-yellow-500 pl-3 py-1 bg-gray-800 bg-opacity-50 rounded-r-md">
+                <span class="font-bold text-yellow-300">INFO DEV.</span> Semua panduan operasional harus dipatuhi.
+            </p>
+            
+            <div class="p-4 bg-red-900 bg-opacity-50 rounded-lg mb-6 border border-red-700">
+                <p class="text-red-300 text-sm font-extrabold text-center">
+                    💥 PERINGATAN KERAS! BACA INI SEBELUM LANJUT. 💥
+                </p>
+                <p class="text-xs text-red-200 mt-2 text-center">
+                    GUNAKAN WEB INI DENGAN BIJAK AGAR EMAIL ADMIN TIDAK LIMIT!
+                </p>
+            </div>
+
+            <ul class="text-xs text-gray-400 space-y-3 mb-6 list-disc pl-5">
+                <li><span class="font-semibold text-yellow-300">Info:</span> Web Ini Private Dan Data Tidak akan bocor.</li>
+                <li><span class="font-semibold text-yellow-300">Info Balasan:</span> Balasan email akan kami kirim lewat Bot Telegram.</li>
+                <li><span class="font-semibold text-yellow-300">Interval IMAP:</span> Cek balasan dilakukan setiap <span class="font-bold text-red-400">60 detik</span>.</li>
+            </ul>
+            
+            <div class="flex items-start mb-6">
+                <input type="checkbox" id="notification-checkbox" class="h-5 w-5 text-red-600 rounded focus:ring-red-500 bg-gray-700 border-gray-600 cursor-pointer">
+                <label for="notification-checkbox" class="ml-3 text-sm font-medium text-gray-300 select-none">Saya telah memahami semua panduan operasional ini.</label>
+            </div>
+            <!-- Tombol "ok tutup halaman" yang diimplementasikan sebagai Lanjutkan -->
+            <button id="close-notification-btn" disabled
+                    class="w-full py-3 px-4 rounded-lg text-white font-semibold red-primary red-hover transition duration-150 btn-transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i> Lanjutkan ke Verifikasi Telegram (Wajib)
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Verifikasi Telegram (Phase 2) - Halaman Login masukan username dan id -->
+    <div id="login-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 backdrop-blur-sm bg-black bg-opacity-80 hidden">
+        <div class="card-bg w-full max-w-sm rounded-2xl p-6 card-shadow border-t-4 border-blue-600 animate-in">
+            <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+                <i data-lucide="user-check" class="w-6 h-6 mr-2 text-blue-400"></i>
+                Verifikasi Wajib: Telegram Auth
+            </h2>
+            <p class="text-sm text-gray-400 mb-4">Wajib verifikasi untuk notifikasi balasan personal dan Grup Wajib Join.</p>
+            
+            <div class="p-3 bg-red-900 bg-opacity-70 rounded-lg mb-6 text-sm">
+                <p class="font-bold text-white flex items-center mb-1">
+                    <i data-lucide="shield-alert" class="w-4 h-4 mr-2 text-yellow-400"></i>
+                    GRUP WAJIB JOIN
+                </p>
+                <p class="font-mono text-red-300 text-center select-all">
+                   JOIN FUCK 🥴
+                </p>
+                <p class="text-xs text-red-200 mt-2">PASTIKAN KONTOL ADMIN BESAR.</p>
+            </div>
+
+            <form id="telegram-login-form" class="space-y-4">
+                <div>
+                    <label for="telegram-id" class="block text-sm font-medium text-gray-300">ID Telegram (Angka)</label>
+                    <input type="number" id="telegram-id" name="telegram-id" required placeholder="Contoh: 1234567890"
+                           class="mt-1 block w-full input-style focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label for="telegram-username" class="block text-sm font-medium text-gray-300">Username Telegram (@)</label>
+                    <input type="text" id="telegram-username" name="telegram-username" required placeholder="@usernameanda"
+                           class="mt-1 block w-full input-style focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+                <!-- Tombol "Verifikasi di kiri" dan "di tengah done Verifikasi tutup halaman" diimplementasikan di sini sebagai satu tombol tunggal Verifikasi & Masuk Dashboard -->
+                <button type="submit" id="telegram-login-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-xl text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 btn-transition focus:ring-4 focus:ring-blue-600 focus:ring-opacity-50">
+                    <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
+                    Verifikasi & Masuk Dashboard
+                </button>
+                <p id="login-message" class="text-center text-sm mt-2 font-medium"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD UTAMA - Struktur tidak ada yang keluar dari kotak dan keren -->
+    <div id="dashboard" class="container-wrapper w-full max-w-lg lg:max-w-xl card-bg text-gray-100 rounded-2xl p-6 md:p-8 card-shadow relative hidden">
+        
+        <header class="text-center mb-8">
+            <div class="flex justify-between items-start md:items-center border-b border-gray-700 pb-4">
+                <div class="flex items-center">
+                    <!-- Logo Sesual Permintaan (Placeholder FIX Merah) -->
+                    <div class="w-16 h-16 rounded-full mr-4 object-cover border-4 border-red-600 shadow-xl flex items-center justify-center red-primary animate-in">
+                         <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-black text-white tracking-wider">ANNAS FIX <span class="red-text">MERAH</span></h1>
+                        <p class="text-xs text-gray-400 italic font-light">Advanced Bot Appeal Panel </p>
+                    </div>
+                </div>
+                <button onclick="localStorage.clear(); checkAuthState();"
+                        class="text-xs font-semibold py-1 px-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white btn-transition flex items-center mt-2 md:mt-0">
+                    <i data-lucide="log-out" class="w-4 h-4 mr-1"></i> Logout/Reset
+                </button>
+            </div>
+        </header>
+
+        <!-- Status dan Pemberitahuan Keren -->
+        <section class="mb-8 p-5 bg-gray-900 rounded-xl card-shadow border-t-4 border-red-600">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-200 flex items-center">
+                    <i data-lucide="zap" class="w-5 h-5 mr-2 text-red-500"></i>
+                    Status Operasional Bot
+                </h2>
+                <!-- Status Display dengan Animasi Sinyal (Shine) -->
+                <div id="status-display" class="px-3 py-1 text-xs font-bold rounded-full text-white shadow-lg red-primary shine-animation">Loading...</div>
+            </div>
+            
+            <!-- Metrics -->
+            <div class="grid grid-cols-3 gap-3 text-center border-t border-gray-800 pt-4">
+                <div class="p-3 bg-gray-800 rounded-lg shadow-inner transform hover:scale-[1.03] btn-transition border border-gray-700">
+                    <p class="text-xs font-medium text-gray-400">Email Aktif</p>
+                    <p id="accounts-count" class="text-2xl font-extrabold red-text mt-1">0</p>
+                </div>
+                <div class="p-3 bg-gray-800 rounded-lg shadow-inner transform hover:scale-[1.03] btn-transition border border-gray-700">
+                    <p class="text-xs font-medium text-gray-400">Total Banding</p>
+                    <p id="riwayat-count" class="text-2xl font-extrabold text-white mt-1">0</p>
+                </div>
+                 <div class="p-3 bg-gray-800 rounded-lg shadow-inner transform hover:scale-[1.03] btn-transition border border-gray-700">
+                    <p class="text-xs font-medium text-gray-400">Sesi Web Aktif</p>
+                    <p id="login-users-count" class="text-2xl font-extrabold text-blue-400 mt-1">0</p>
+                </div>
+            </div>
+
+            <!-- Detail Konfigurasi -->
+            <div id="config-details" class="mt-4 space-y-2 text-xs text-gray-400">
+                <div class="flex items-center justify-between p-2 bg-gray-800 rounded">
+                    <div class="flex items-center"><i data-lucide="clock" class="w-4 h-4 mr-2 text-yellow-400"></i> IMAP Check Interval:</div>
+                    <span id="imap-interval-display" class="font-bold text-yellow-300">...</span> detik
+                </div>
+                <!-- Akun Pengguna Sesuai Login -->
+                <div class="flex items-center justify-between p-2 bg-gray-800 rounded border-l-4 border-blue-500">
+                    <div class="flex items-center"><i data-lucide="user" class="w-4 h-4 mr-2 text-blue-400"></i>Akun Anda:</div>
+                    <span id="current-telegram-username" class="font-bold text-blue-300"></span> 
+                    (ID: <span id="current-telegram-id" class="font-bold text-blue-300"></span>)
+                </div>
+            </div>
+        </section>
+
+        <!-- Eksekusi Banding -->
+        <section class="mb-8 p-5 card-bg rounded-xl card-shadow border-t-4 border-red-600">
+            <h2 class="text-xl font-bold red-text mb-4 flex items-center border-b border-gray-700 pb-2">
+                <i data-lucide="mail-plus" class="w-6 h-6 mr-2"></i>
+                EKSEKUSI BANDING MASSAL
+            </h2>
+            <form id="appeal-form" class="space-y-4">
+                <div>
+                    <label for="number" class="block text-sm font-medium text-gray-300">Nomor WhatsApp Target (Format Internasional +XX...)</label>
+                    <input type="text" id="number" name="number" required placeholder="Contoh: +628123456789"
+                           class="mt-1 block w-full input-style focus:ring-red-500 focus:border-red-500">
+                </div>
+                <button type="submit" id="send-appeal-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-xl text-base font-bold text-white red-primary red-hover btn-transition focus:ring-4 focus:ring-red-600 focus:ring-opacity-50">
+                    <i data-lucide="rocket" class="w-5 h-5 mr-2"></i>
+                    LAUNCH BANDING SEKARANG!
+                </button>
+                <p id="appeal-message" class="text-center text-sm mt-2 font-medium"></p>
+            </form>
+        </section>
+
+        <!-- Tambah Akun -->
+        <section class="mb-8 p-5 card-bg rounded-xl card-shadow border-t-4 border-green-600">
+            <h2 class="text-xl font-bold text-green-500 mb-4 flex items-center border-b border-gray-700 pb-2">
+                <i data-lucide="user-plus" class="w-6 h-6 mr-2"></i>
+                Tambah Akun Pengirim (SMTP/IMAP)
+            </h2>
+            <form id="add-account-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-300">Email Pengirim (Wajib Aktif)</label>
+                    <input type="email" id="email" name="email" required placeholder="emailanda@gmail.com"
+                           class="mt-1 block w-full input-style text-sm focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-300">App Password (16 Digit, Tanpa Spasi)</label>
+                    <input type="password" id="password" name="password" required placeholder="xxxx xxxx xxxx xxxx"
+                           class="mt-1 block w-full input-style text-sm focus:ring-green-500 focus:border-green-500">
+                </div>
+                <button type="submit" id="add-account-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg shadow-xl text-base font-bold text-white bg-green-600 hover:bg-green-700 btn-transition focus:ring-4 focus:ring-green-600 focus:ring-opacity-50">
+                    <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                    Tambahkan & Uji Koneksi Akun
+                </button>
+                <p id="add-account-message" class="text-center text-sm mt-2 font-medium"></p>
+            </form>
+        </section>
+
+        <!-- Konsol Log Realtime -->
+        <section class="p-5 bg-gray-900 rounded-xl card-shadow border-t-4 border-gray-700">
+            <h2 class="text-xl font-bold text-gray-300 mb-4 flex items-center border-b border-gray-800 pb-2">
+                <i data-lucide="terminal" class="w-6 h-6 mr-2 text-gray-400"></i>
+                Konsol Log Server (Aktivitas Realtime)
+            </h2>
+            <div id="log-display" class="log-box">
+                <div class="text-gray-500">Menghubungkan ke API...</div>
+            </div>
+        </section>
+
+        <footer class="mt-8 pt-4 border-t border-gray-700 text-center">
+            <p class="text-xs text-gray-500">
+                <span class="font-bold red-text">Annas Fix Merah V3</span> - Advanced Panel. 
+                <span class="font-semibold text-gray-400 ml-1">Keren dan Bagus.</span>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+************************************************
+        const API_BASE_URL = "https://fixmerahnewprivate.netlify.app/.netlify/functions"; 
+// ^ Benar! Ini adalah base path untuk semua Netlify Functions.
+
+        Selectors) ---
+        const $ = (id) => document.getElementById(id);
+
+        const statusDisplay = $('status-display');
+        const accountsCount = $('accounts-count');
+        const riwayatCount = $('riwayat-count');
+        const loginUsersCount = $('login-users-count');
+        const imapIntervalDisplay = $('imap-interval-display');
+        const logDisplay = $('log-display');
+        const appealForm = $('appeal-form');
+        const addAccountForm = $('add-account-form');
+        const appealMessage = $('appeal-message');
+        const addAccountMessage = $('add-account-message');
+        const sendAppealBtn = $('send-appeal-btn');
+        const addAccountBtn = $('add-account-btn');
+        
+        // Modals & Auth
+        const notificationModal = $('notification-modal');
+        const loginModal = $('login-modal');
+        const dashboard = $('dashboard');
+        const notificationCheckbox = $('notification-checkbox');
+        const closeNotificationBtn = $('close-notification-btn');
+        const telegramLoginForm = $('telegram-login-form');
+        const currentTelegramIdSpan = $('current-telegram-id');
+        const currentTelegramUsernameSpan = $('current-telegram-username'); 
+
+        let telegramId = localStorage.getItem('telegram_id') || null;
+        let telegramUsername = localStorage.getItem('telegram_username') || null;
+        let notificationRead = localStorage.getItem('notification_read') === 'true';
+
+        // --- UTILITY FUNCTIONS ---
+        
+        function setButtonState(button, isLoading, originalText) {
+            button.disabled = isLoading;
+            button.innerHTML = isLoading ? '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...' : originalText;
+        }
+
+        function displayMessage(element, message, isSuccess) {
+            element.innerHTML = message; // Gunakan innerHTML untuk mendukung tag <code>
+            element.className = `text-center text-sm mt-2 font-medium ${isSuccess ? 'text-green-500' : 'text-red-500'} animate-in`;
+        }
+
+        function formatLogEntry(log) {
+            let colorClass = 'log-info';
+            if (log.level === 'SUCCESS') colorClass = 'log-success';
+            if (log.level === 'ERROR' || log.level === 'FATAL') colorClass = 'log-error font-bold';
+            if (log.level === 'ALERT' || log.level === 'WARN') colorClass = 'log-alert';
+
+            // Menggunakan icon centang/lainnya
+            let icon = '';
+            if (log.level === 'SUCCESS') icon = '✅ ';
+            if (log.level === 'ERROR' || log.level === 'FATAL') icon = '❌ ';
+            if (log.level === 'ALERT') icon = '⚠️ ';
+            if (log.level === 'INIT') icon = '🚀 ';
+
+            return `<div class="mb-1 text-gray-400"><span class="log-timestamp">${log.timestamp}</span> <span class="font-bold ${colorClass}">[${log.level}]</span> ${icon} ${log.message}</div>`;
+        }
+
+
+        // --- AUTENTIKASI DAN UI FLOW ---
+
+        function checkAuthState() {
+            telegramId = localStorage.getItem('telegram_id') || null;
+            telegramUsername = localStorage.getItem('telegram_username') || null;
+            notificationRead = localStorage.getItem('notification_read') === 'true';
+
+            if (!notificationRead) {
+                // Tampilkan Modal Pemberitahuan (Phase 1)
+                notificationModal.classList.remove('hidden');
+                loginModal.classList.add('hidden');
+                dashboard.classList.add('hidden');
+            } else if (!telegramId || !telegramUsername) {
+                // Tampilkan Modal Login Telegram (Phase 2 - Verifikasi Wajib)
+                notificationModal.classList.add('hidden');
+                loginModal.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+                
+                if (telegramId) $('telegram-id').value = telegramId;
+                if (telegramUsername) $('telegram-username').value = telegramUsername;
+            } else {
+                // Tampilkan Dashboard
+                notificationModal.classList.add('hidden');
+                loginModal.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                currentTelegramIdSpan.textContent = telegramId;
+                currentTelegramUsernameSpan.textContent = `@${telegramUsername}`;
+                
+                if (!window.statusInterval) { 
+                   window.statusInterval = setInterval(fetchStatus, 3000); 
+                   fetchStatus(); // Panggil sekali di awal
+                }
+            }
+        }
+        
+        // 1. Logika Pemberitahuan Wajib
+        notificationCheckbox.addEventListener('change', () => {
+            closeNotificationBtn.disabled = !notificationCheckbox.checked;
+        });
+
+        closeNotificationBtn.addEventListener('click', () => {
+            if (notificationCheckbox.checked) {
+                localStorage.setItem('notification_read', 'true');
+                notificationRead = true;
+                notificationModal.classList.add('hidden');
+                // Lanjut ke fase 2: Login Telegram
+                checkAuthState(); 
+            }
+        });
+
+        // 2. Logika Login Telegram (Verifikasi Wajib)
+        telegramLoginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = $('telegram-id').value.trim();
+            const username = $('telegram-username').value.trim().replace('@', ''); 
+            const loginBtn = $('telegram-login-btn');
+            const originalText = loginBtn.innerHTML;
+            setButtonState(loginBtn, true, originalText);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/login_telegram`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegram_id: id, telegram_username: username })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Sesuai permintaan: "di tengah done Verifikasi tutup halaman"
+                    displayMessage($('login-message'), "✅ Verifikasi sukses! Cek bot Telegram Anda.", true);
+                    localStorage.setItem('telegram_id', id);
+                    localStorage.setItem('telegram_username', username);
+                    // Tambahkan jeda agar user membaca pesan sukses sebelum dashboard muncul
+                    setTimeout(checkAuthState, 2000); 
+                } else {
+                    displayMessage($('login-message'), result.message || '❌ Verifikasi gagal. Cek ID/Username atau koneksi API.', false);
+                }
+            } catch (error) {
+                displayMessage($('login-message'), '❌ Gagal terhubung ke server API Anda. Pastikan Cloudflared/Server aktif dan URL sudah benar.', false);
+            } finally {
+                setButtonState(loginBtn, false, originalText);
+            }
+        });
+
+        // --- KONEKSI API DAN DATA FETCHING ---
+        
+        async function fetchStatus() {
+            let isConnected = false;
+            statusDisplay.textContent = 'Menghubungkan...';
+            statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white card-shadow bg-yellow-600`;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/status`);
+                if (!response.ok) { throw new Error(`HTTP status: ${response.status}`); }
+                const data = await response.json();
+                isConnected = true;
+
+                // Update Status Display
+                statusDisplay.textContent = data.status;
+                statusDisplay.className = `px-3 py-1 text-xs font-bold rounded-full text-white card-shadow ${data.status === 'AKTIF' ? 'bg-green-500 shine-animation' : 'bg-red-700'}`;
+                
+                // Update Metrics (Info 60 detik IMAP dan lain-lain muncul)
+                accountsCount.textContent = data.accounts_count || 0;
+                riwayatCount.textContent = data.riwayat_count || 0;
+                loginUsersCount.textContent = data.telegram_users_count || 0;
+                imapIntervalDisplay.textContent = data.imap_interval || '...';
+                
+                // Update Log
+                if (data.status === 'AKTIF' && data.logs && data.logs.length > 0) {
+                    logDisplay.innerHTML = data.logs.map(formatLogEntry).join('');
+                    logDisplay.scrollTop = 0; 
+                } else if (data.status === 'AKTIF') {
+                    logDisplay.innerHTML = `<div class="text-green-400 font-bold">✅ Server Terhubung. Bot aktif. Menunggu aktivitas baru...</div>`;
+                }
+
+            } catch (error) {
+                statusDisplay.textContent = 'OFFLINE';
+                statusDisplay.className = 'px-3 py-1 text-xs font-bold rounded-full text-white card-shadow bg-red-700';
+                if (!isConnected) {
+                   logDisplay.innerHTML = `<div class="text-red-400 font-bold">❌ Gagal terhubung ke API (<code>${API_BASE_URL}</code>). Cek Cloudflared & server Python! Error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        // --- Kirim Banding (Handler) ---
+        appealForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalText = sendAppealBtn.innerHTML;
+            setButtonState(sendAppealBtn, true, originalText);
+            appealMessage.textContent = '';
+            
+            if (!telegramId) {
+                displayMessage(appealMessage, 'ID Telegram Anda belum terdaftar. Silakan login ulang.', false);
+                setButtonState(sendAppealBtn, false, originalText);
+                setTimeout(checkAuthState, 1500);
+                return;
+            }
+
+            const number = $('number').value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/send_appeal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        number: number,
+                        telegram_id: telegramId // Kirim ID Telegram pengguna yang mengirim
+                    })
+                });
+
+                const result = await response.json();
+                displayMessage(appealMessage, result.message, response.ok);
+            } catch (error) {
+                displayMessage(appealMessage, '❌ Gagal terhubung ke server atau terjadi kesalahan jaringan. Cek server API Anda.', false);
+            } finally {
+                setButtonState(sendAppealBtn, false, originalText);
+                fetchStatus();
+            }
+        });
+
+        // --- Tambah Akun Email (Handler) ---
+        addAccountForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalText = addAccountBtn.innerHTML;
+            setButtonState(addAccountBtn, true, originalText);
+            addAccountMessage.textContent = '';
+            
+            const email = $('email').value.trim();
+            // Bersihkan spasi dari input password sebelum dikirim
+            const password = $('password').value.trim().replace(/\s/g, ''); 
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/add_account`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                displayMessage(addAccountMessage, result.message, response.ok);
+                
+                if (response.ok) { 
+                    $('email').value = '';
+                    $('password').value = '';
+                }
+
+            } catch (error) {
+                displayMessage(addAccountMessage, '❌ Gagal terhubung ke server atau terjadi kesalahan jaringan. Cek server API Anda.', false);
+            } finally {
+                setButtonState(addAccountBtn, false, originalText);
+                fetchStatus();
+            }
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons(); 
+            checkAuthState(); 
+        });
+    </script>
+</body>
+</html>
+
